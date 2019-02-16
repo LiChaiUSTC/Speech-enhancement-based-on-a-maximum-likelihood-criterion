@@ -51,8 +51,7 @@ conventional MMSE or our proposed objective function with GGD error model derive
 `perl finetune.pl`
 
 Note: 
-
-- The paramters "MLflag" and "shapefactor" in "finetune.pl" control the choice of the objective function.   
+The paramters "MLflag" and "shapefactor" in "finetune.pl" control the choice of the objective function.   
 - When MLflag≠1, the classic β-norm function is selected as the objective function, where β=1 corresponds to the L1-norm, namely the least absolute deviation (LAD) and β=2 corresponds to the L2-norm, namely the MMSE.  
 - When MLflag=1, the GGD error model based log-likelihood function is selected as the objective function, where "shapefactor" refers to the shape factor β in GGD. 
 
