@@ -1,0 +1,249 @@
+.de Sh
+.br
+.ne 5
+.PP
+\fB\\$1\fR
+.PP
+..
+.de Sp
+.if t .sp .5v
+.if n .sp
+..
+.               \" Path Name
+.               \"      uses Courier fonts for V4.0
+.de PN
+.ie t \&\f(CB\\$1\f(NR\\$2
+.el \fI\\$1\fP\\$2
+..
+.		\" The following macros added by dpwe for Ultrix 4..
+.               \" Manual section reference
+.               \"      uses Courier fonts for V4.0
+.de MS
+.ie t \&\f(CB\\$1\f(NR(\\$2)\\$3
+.el \fI\\$1\fP(\\$2)\\$3
+..
+.de EX		\" Begin Example
+.ie \\n(.$ .nr EX \\$1n
+.el \{\
+.	ie n .nr EX 0n
+.	el .nr EX 0n
+.\}
+.in +\\n(EXu
+.if n .sp 1
+.if t .sp .5v
+.nf
+.CW
+.ft CB
+..
+.de EE		\" End example
+.in -\\n(EXu
+.fi
+.}f             \" restore basic text attributes
+.if n .sp 1
+.if t .sp .5v
+..
+.\" $Header: /u/drspeech/src/bedk_frontend/RCS/msgcalc.man,v 1.2 2000/08/06 17:12:03 dpwe Exp $
+.TH msgcalc 1 "$Date: 2000/08/06 17:12:03 $" ICSI
+.SH NAME
+msgcalc \- wrapper for Modulation-filtered Spectrogram (MSG) feature calculation
+.SH SYNOPSIS
+\fBmsgcalc\fR 
+\fR[\fIoptions\fR]
+\fR[\fIinput files ...\fR]
+.SH DESCRIPTION
+.PP
+.PN msgcalc
+is a feature calculation program to produce the Modulation-filtered 
+Spectrogram features developed by Brian Kingsbury at ICSI. 
+Brian wrote a collection of programs to calculate his features 
+whose syntax was different from other feature calculation 
+routines at ICSI.  
+.PN msgcalc 
+is a wrapper around Brian's core 
+.MS modspec 1 
+program that gives the appearance of a single, integrated 
+feature calculation program such as 
+.MS feacalc 1 .
+In fact, 
+.PN msgcalc 
+has been made to resemble 
+.MS feacalc 1 
+as closely as possible, and accepts many of the same options.
+.PP
+.PN msgcalc
+actually uses
+.MS wavs2onlaudio 1 
+to handle opening and ranging the input sounds, then pipes the data 
+to two instances of 
+.MS modspec 1 
+then collects the resulting online feature streams via pipes into 
+.MS feacat 1 
+which formats them as a pfile.  (This relies on the new "//" paste 
+syntax of 
+.MS feacat 1 ).
+.SH ARGUMENTS
+The following arguments are accepted.  Most of the descriptions 
+are simply copied from the 
+.MS feacalc 1 
+page.
+.TP 12
+\fB-msg\fR <\fItype\fR> (1)
+This option is unique to 
+.PN msgcalc
+and selects the kind of MSG filters used.  Currently, 
+only 1 (for Broadcast News-style msg1) and 3 
+(for Aurora/NUMBERS95-style msg3) are accepted.  
+Also, msg1 only works if steptime=16, and msg3 only 
+works if steptime=10.  Other variants could be added 
+by editing the script, but we would have to generate 
+the corresponding modulation filter (*.sos) files too.
+.TP 12
+\fB-win?dowtime\fR <\fItime\fR> (32.0)
+Duration of the spectral analysis window in milliseconds.
+.TP 12
+\fB-step?time\fR <\fItime\fR> (16.0)
+Time space between the start of successive analysis windows in 
+milliseconds.
+.TP 12
+\fB-zero?padtime\fR <\fItime\fR> (0)
+Add zeros to each end of the input sound (similar to a function 
+previously in make_pfile).  The duration of exact-silence that will be applied
+to both ends of the sound is specified in milliseconds.
+.TP 12
+\fB-list?s\fR
+Treat the filenames appended to the command lines as names of files full 
+of utterance IDs, rather than soundfiles or utterance IDs.
+The list file format should have at most one ID per line 
+as the first token.  Blank lines, lines beginning with "#", and tokens 
+after the first on each line (except for ranges as described under -range), 
+will be ignored.
+.IN 12
+If -list is not specified, extra arguments on the command line are 
+interpreted as soundfile names or utterance IDs (if -filecmd is defined)
+.TP 12
+\fB-range?rate\fR <\fIrate\fR> (0)
+Treat the filename specifications as "ranged" i.e. each filename is 
+followed by two numbers specifying the start and end indices of the 
+portion of that file to actually process, plus an optional third 
+argument indicating which channel to use (of a multichannel file).  
+The start and end "indices" are 
+assumed to be counting frames at some clock rate, and the nonzero 
+argument \fIrate\fR defines the number of frames per second, solely 
+used to convert this index to time.  If the values are in seconds, 
+rangerate should be 1; if they are centiseconds, it should be 100; 
+if they are sample frames of 8kHz sampled wav files, it should be 
+8000.  If it is zero, range specification is disabled.  If it is 
+not zero, ranges \fImust\fR be provided.  However, ranges are 
+only supported in -list mode; currently, for other methods of 
+specifying the input filenames, rangerate is ignored.
+Thus 
+to get exactly the first 1000 samples from the left channel of 
+an 8kHz stereo file, specify 
+"-rangerate 8000" and have your list line look like "<utid> 0 1000 A".  
+.TP 12
+\fB-rngst?artoffset\fR <\fIval\fR> (0)
+When reading "range" indices, add this constant to all the start 
+values (prior to converting to times via rangerate).
+.TP 12
+\fB-rngend?offset\fR <\fIval\fR> (0)
+When reading "range" indices, add this constant to all the end 
+values (prior to converting to times via rangerate).
+.TP 12
+\fB-sent_s?tart\fR <\fIuttnum\fR> (0)
+In a list of utterances (file names), skip this many before starting. 
+Useful in conjunction with sent_count to subset an existing file list.
+(formerly -firstutt).
+.TP 12
+\fB-sent_c?ount\fR <\fIuttcount\fR> (-1)
+In a list of utterances (file names), stop after processing this many 
+files (if the list is long enough). 
+Useful in conjunction with sent_start to subset an existing file list.
+The default value of -1 means keep going to the end of the list.
+.TP 12
+\fB-ip?format\fR <\fISNDF token\fR> ("")
+Specifies that input soundfiles should be treated as being in the 
+corresponding format, using one of the token strings defined in 
+.MS sndf 3
+(e.g. "NIST" for SPHERE/NIST and "PCM/Abb" for Abbot online raw data).  
+If this is not specified, the sndf library will divine the soundfile 
+type automatically.  However, certain file formats (such as ESPS) 
+cannot be auto-identified and must be explicitly requested.
+.TP 12
+\fB-sam?plerate\fR <\fIrate\fR> (8000.0)
+The sampling rate of the input sound data.  An error rate will be reported 
+if this does not agree with the value retrieved from the soundfile header; 
+however, the value specified in the command line will be the one used by 
+the algorithm (even if it is the default value).
+.TP 12
+\fB-nyq?uistrate\fR <\fIrate\fR> (0)
+Optionally, 
+.PN msgcalc
+can perform an effective downwards resampling on-the-fly, by discarding 
+some upper bins of the initial spectral analysis.  This option, if 
+specified, determines the effective highest frequency used.  If it is 
+not specified, it defaults to sampling rate / 2.  This is typically 
+used to simulate 8kHz-sampled data from 16kHz samples, in which case 
+the Nyquist rate should be set to 4000 (half of 8kHz).  Although 
+it doesn't exactly match the results of downsampling (e.g. with 
+.MS sndrsmp 1 )
+followed by analysis, the differences are typically smaller than 10%, 
+which is large, but this appears to be mainly due to a timing skew 
+rather than a deep difference in the features.
+.TP 12
+\fB-file?cmd\fR <\fIcommand string\fR> ("")
+A Unix command which will be applied to each utterance ID to generate the 
+name of the appropriate soundfile to open.  The characters "%u" in the 
+command string will be subsituted by the utterance ID before execution.  
+(For historical reasons, "%s" is accepted as an alternative to "%u")
+If the filecmd is blank, the utterance 
+IDs will be treated as file pathnames directly.
+.TP 12
+\fB-o?utput\fR <\fIfilename\fR> ("-")
+The name of the output file to be written.  The default value of "-" means 
+to write to the standard output. (Note that this is not supported by all 
+output formats; in particular, pfiles cannot be written to "-").
+.TP 12
+\fB-op?format|-format\fR \fBp?file|o?nlftr|a?scii|h?tk\fR (pfile)
+Selects the format of the output file.  "pfile" is a standard ICSI pfile, 
+courtesy of the QuickNet routines.  "onl" writes to the 
+so-called "online feature format". "ascii" writes values 
+in decimal, and "htk" writes 12-byte headers as for HTK feature files, tagged 
+as the user-defined feature type.
+All binary formats ("online" and "htk") write big-endian outputs.
+.TP 12
+\fB-v?erbose\fR
+If specified, shows the actual subcommands being executed.
+.SH EXAMPLES
+To calculate msg3 features for the clean portion of the Aurora2000
+matched-condition test set:
+.EX
+msgcalc -msg 3 -step 10 -win 25 -ipf PCM/R8FsC1Eb \\
+    -wavdir /u/drspeech/data/aurora/wavfile/aurora2/testa -wavext .08 \\
+    -list /u/drspeech/data/aurora/list/aurora2/a2-testa.list \\
+    -sent_count 4004 -o a2-testa-CLEAN-msg3.pf
+.EE
+To calculate 8kHz-based (i.e. nyquist at 4kHz) 
+msg1 features for the Broadcast News 
+h4e_97 test set:
+.EX
+msgcalc -ipf NIST -rangerate 1.0 -rngstarto -0.072 -rngendo 0.072 \\
+    -samplerate 16000 -nyq 4000 -filecmd "bn_file %u" \\
+    -list /u/drspeech/data/bn/list/h4e_97.list \\
+    -o h4e_97-msg1.pf
+.EE
+.SH ENVIRONMENT
+SPEECH_DIR (/u/drspeech) and MODSPEC_DIR ($SPEECH_DIR/data/modspec) 
+can be set externally to help find the MSG filter *.sos files.
+.SH BUGS
+This is a hack.  The path to the MSG filter definition files 
+(/u/drspeech/data/modspec) is hard-coded in the script. 
+Command line parsing and syntax checking 
+is very fast and loose - best you don't make 
+any mistakes!
+.SH AUTHOR
+Dan Ellis, \fBdpwe@icsi.berkeley.edu\fR
+.SH SEE ALSO
+.MS feacalc 1 ,
+.MS modspec 1 ,
+.MS wavs2onlaudio 1 ,
+.MS feacat 1 .

@@ -1,0 +1,391 @@
+. $Header: /u/drspeech/src/labels2pfile/labels2pfile.man,v 1.7 2000/09/23 21:45:21 dpwe Exp $
+.de EX		\" Begin Example
+.ie \\n(.$ .nr EX \\$1n
+.el \{\
+.	ie n .nr EX 0n
+.	el .nr EX 0n
+.\}
+.in +\\n(EXu
+.if n .sp 1
+.if t .sp .5v
+.nf
+.CW
+.ft CB
+..
+.de EE		\" End example
+.in -\\n(EXu
+.fi
+.}f             \" restore basic text attributes
+.if n .sp 1
+.if t .sp .5v
+..
+.de MS
+.ie t \&\f(CB\\$1\f(NR(\\$2)\\$3
+.el \fI\\$1\fP(\\$2)\\$3
+..
+.TH LABELS2PFILE 1 "$Date: 2000/09/23 21:45:21 $" ICSI "ICSI SPEECH SOFTWARE"
+.SH NAME
+labels2pfile \- convert labels in timit or xlabel-type format into a pfile representation
+.SH SYNOPSIS
+.B labels2pfile \fBlistfile\fR=<idlist(s)>
+\fBpfile\fR=<output.pfile>
+\fBphndirectory\fR=<dir>
+[\fIother opts\fR]
+[\fIuttids\fR]
+.SH DESCRIPTION
+.I labels2pfile
+is used to convert labels stored in a set of transcription files 
+(in formats such as TIMIT and ESPS 
+.MS xlabel 1 )
+into the 'sampled-time' pfile-format labels used for net 
+trainings with 
+.MS qnstrn 1
+and related quicknet programs.  
+.I labels2pfile
+handles a variety of complications to this process, such as different 
+formats of the transcription files, coercing alignment to soundfiles, 
+and padding or trimming the ends of each utterance.  The goal is to 
+have a single program to create target labels that exactly parallels
+.MS feacalc 1 ,
+the program which generates the corresponding features.
+.SH OPTIONS
+The following options are accepted (defaults in parens):
+.SS Finding input and output files
+.TP
+.B listfile=\fIidlists\fR (required unless ctmfile is given)
+.I labels2pfile
+is typically used to create a single labels pfile for a large collection 
+of individual utterances (i.e. the training set); this argument specifies 
+the names of one or more files specifying those utterances, one per line. 
+If more than one file is provided (as a space-delimited list, which you'd 
+normally have to put in quotes to stop the shell breaking it up), the 
+output consists of all the utterances specified in the first file, then 
+all the ones from the second list etc.  Normally the utterances are 
+specified by the utterance ID, a short token in a format defined for 
+each database, which is then converted into the name of a transcription 
+file as described under the phnfilecmd option below.
+.IP
+Utterance IDs may also be directly specified on the command line; when 
+both individual IDs and one or more listfiles are specified, the 
+command-line IDs are processed first, followed by those read from the 
+listfile.
+.TP
+.B ctmfile=\fIfilename\fR (none)
+As an alternative to reading a set of individual transcription label files, 
+.I labels2pfile
+can read a CTM file which contains the transcriptions of many 
+utterances, as written by 
+.MS dr_align 1 .
+In this case, the listfile is optional; if it is present, it will be 
+used to obtain the utterance IDs for each element in the listfile, which 
+may be used to check the duration against a wavfile, but will 
+otherwise be ignored.  \f4ctmfile\f1 can be specified as "-", in which 
+case the CTM label stream is read from the standard input.
+.TP
+.B pfile=\fIfilename\fR (required)
+The name of the pfile to which the output labels will be written.  This 
+pfile will have zero feature columns and one label column, which will 
+correspond to the labels read from the transcription files.  It will have 
+multiple utterances, one for each utterance ID processed.
+.P
+.PD 0
+.B phndirectory=\fIdir\fR (".")
+.P
+.B phnextension=\fIext\fR (".phn")
+.TP
+.PD 1
+.B phnfilecmd=\fIcmd\fR (none)
+There are two ways that 
+.I labels2pfile
+can map the utterance IDs it reads from the list file(s) into 
+filenames for the various transcription files that it will convert.  
+The first option is to construct a file path name as 
+\fI<phndirectory>\fR/\fI<uttid><phnextension>\fR, 
+which works if all the transcription files are in a single 
+directory and the utterance IDs bear such a simple relationship to 
+the filenames (also, if the list files contain full pathnames rather 
+than simple utterance IDs, this is the approach to use with both
+phndirectory and phnextension set to "").  
+Alternatively, if \f4phnfilecmd\f1 is defined, it is taken as a 
+command line that will be executed to map an utterance ID to the 
+name of a transcription file, for instance 
+.MS numbers95_findfile 1 
+and 
+.MS bn_file 1 .  The script will replace any occurrence of "%u" in 
+the command string with the utterance ID for which the transcription is 
+desired.  If there is no "%u" in the command string, the utterance ID will 
+simply be appended, without any intervening space.
+See the EXAMPLES section.
+.TP
+.B sent_start=\fInum\fR (0 i.e. first utterance)
+After reading all the lists of utterance IDs to process, start with this 
+one i.e. skip this many utterances from the start of the list.
+.TP
+.B sent_count=\fInum\fR (0 i.e. all remaining utterances)
+Process at most this many utterances i.e. assuming the utterance ID list 
+is long enough, this is how many of them will be processed.  Anything 
+smaller than 1 is treated as meaning continue until the list is exhausted.
+.SS Defining the format of the transcription label files
+.TP
+.B labeltype=\fItype\fR ("timit")
+The format of the transcription label files.  This can be "timit" (for 
+TIMIT-style files; see \f4label_framerate\f1 below), "xlabel" (for the label 
+files written by ESPS's
+.MS xlabel 1 
+tool), "noway" or "noway2" (for alignment files written by Noway, 
+version 1.x or 2.x respectively).
+.TP
+.B label_framerate=\fIrate_Hz\fR (1000.0 Hz)
+The units to be used when interpreting the time indices in TIMIT-format 
+label files, which specify start and end times in integer counts of 
+some time base.  With the default value of 1000 Hz, the counts are assumed to 
+be of milliseconds.  TIMIT files often use counts of sample frames, 
+e.g. label_framerate=8000 or label_framerate=16000.
+.TP
+.B phoneset=\fIphsetFile\fR ("/u/drspeech/data/phonesets/icsi56.phset")
+The definition of the phoneset i.e. the mapping from symbolic labels 
+("ah", "h#" etc.) to numerical indices used in the label pfile and to 
+index the one-hot training targets.  This must be in standard ICSI 
+phoneset file format i.e. the total count, then each line is "symbol 
+index", in order, starting from 0.
+.TP
+.B map61to56=\fIbool\fR (0 i.e. don't map)
+.B map61to54=\fIbool\fR (0 i.e. don't map)
+As a special time-saving feature, this option will automatically perform 
+the symbolic mapping of the extra phones in the TIMIT 61 phone symbol 
+set to their equivalents in the standard ICSI 56 phone set, or from 
+both TIMIT-61 and ICSI-56 to CAM-54.  Since this 
+mapping is applied before the labels are converted to indices, it is 
+actually independent of the \f4phoneset\f1 option.
+.SS Controlling the number of output frames
+.TP
+.B steptime=\fItime_ms\fR (10.0 ms)
+The duration corresponding to each frame in the output pfile (i.e. the 
+period of the discretization).  This option 
+corresponds to the same option to 
+.MS feacalc 1 .
+(formerly \f4frame_step\f1).
+.TP
+.B windowtime=\fItime_ms\fR (25.0 ms)
+The length of the analysis window used for each feature frame.  This is 
+used to calculate how far from the ends of the file the centers of the first 
+and last analysis frames are.  With the default value of 25ms, the first 
+frame is assumed centered on t=12.5ms, and the last frame center must 
+be at least 12.5ms from the end of the file.  This is the default behavior 
+of 
+.MS rasta 1
+and
+.MS feacalc 1 ;
+however, other options are possible.  To match the -y/-pad behavior 
+of those programs, 
+set the \f4windowtime\f1 equal to the \f4steptime\f1.  (This option 
+replaces the earlier \f4sampleslop\f1).
+.TP
+.B offsettime=\fIoffset_ms\fR (0.0 ms)
+An offset added to each absolute time read from the transcription labels 
+files before processing.  Thus a positive value equal to the \f4steptime\f1 
+would delay the labels in the output pfile by 1 step.
+.TP
+.B zeropad=\fIzeropad_ms\fR (0.0 ms)
+Act as though this amount of silence had been added at each end of the 
+original file; thus floor(\f4zeropad\f1/\f4steptime\f1) frames 
+of \f4silencephone\f1 (see below) are added at each end of each 
+emitted utterance.  Again, its effects should correspond to the same 
+option to 
+.MS feacalc 1 .
+A negative zeropad implies trimming a certain number of frames from both 
+ends of each utterance.
+.TP
+.B silencephone=\fIphsymb\fR ("h#")
+When emitting frames that correspond to times not defined in the 
+transcription file (for instance, as a result of the \f4zeropad\f1 
+option), the index emitted will be the one corresponding to this 
+symbol in the phoneset file.
+.SS Matching file durations with wav files
+.P
+.PD 0
+.B wavdirectory=\fIdir\fR ("")
+.P
+.B wavextension=\fIext\fR (".wav")
+.TP
+.PD 1
+.B wavfilecmd=\fIcmd\fR ("")
+These options define how the script can find the soundfile corresponding to 
+each utterance.  If \f4wavfilecmd\f1 is defined, it has "%u" replaced 
+with the utterance ID (or the ID appended without a space, if %u doesn't 
+appear in the string, as with \f4phnfilecmd\f1), and it is then executed 
+and its result taken as the file path to the wav file.  Otherwise, if 
+\f4wavdirectory\f1 is non-empty, the waveform filename is built as 
+\fI<wavdirectory>\fR/\fI<uttID><wavextension>\fR.  If a waveform filename 
+is obtained by either means, that file is read as a soundfile to find the 
+actual number of samples in that utterance; this is converted (possibly 
+accounting for \f4zeropad\f1) into the number of whole chunks of 
+\f4steptime\f1 duration it can contain, and the number of frames 
+constructed from the transcription file is extended or truncated to 
+exactly match this number of frames.  This is particularly important for 
+hand-transcribed files, where the end of the final segment may correspond 
+only approximately to the actual last frame of the sound, as generated by 
+the feature calculation program;  if the number of frames in corresponding 
+label and feature pfiles does not match exactly, training programs such as 
+.MS qnstrn 1
+will report an error.  Note that options such as \f4zeropad\f1
+etc. are applied after the number of frames has been 
+aligned to the soundfiles.
+.TP
+.B samplerate=\fIrate_hz\fR (8000.0 Hz)
+The sampling frequency used to convert between sample frame counts seen in 
+wav files and the actual duration in seconds inferred for the utterance.  
+\f4samplerate\f1 is also used as the quantization step used for comparing 
+times (thus, times round to the same number of steps at \f4samplerate\f1 
+are treated as equal; see NOTES below) but for this purpose the actual 
+sample rate is usually not important, as long as it is in the right range.
+.TP
+.B deslenfile=\fIfilename\fR ("")
+Analogous to the same option in 
+.MS labcat 1 
+etc., this option names a file consisting of one integer per line, 
+which specifies the number of output frames to be written for the 
+corresponding utterance.  The actual label stream will be padded or 
+truncated to match this number.  This specification of the effective 
+file duration has lowest priority, after range information and 
+wavfile inspection. n.b.: deslenfile parsing is very crude; no 
+comments or blank lines are tolerated at present.
+.TP
+.B durfile=\fIfilename\fR ("")
+Sometimes it is useful to have the exact equivalent duration of the 
+effective number of frames emitted for each utterance saved to a file so 
+subsequent processing (e.g. feature calculation) can be sure to match 
+exactly.  If \f4durfile\f1 is defined, it is written as a file with one 
+line per processed utterance containing the utterance ID and the time in 
+seconds separated by a space.  Note that the duration written out does not 
+reflect the effects of the \f4zeropad\f1 etc. options.
+The \f4durfile\f1 option is used by 
+.MS bn_mkpfile
+to ensure that the segment frame counts exactly match the durations 
+implied by the alignment files given to us by Cambridge.
+.SS Using range information from the utterance ID list
+.P
+.PD 0
+.B rangerate=\fIrate_hz\fR (0 Hz)
+.P
+.B rngstartoffset=\fIoffset\fR (0)
+.TP
+.PD 1
+.B rngendoffset=\fIoffset\fR (0)
+In certain tasks (notably the DIGITS corpus), utterance ID lists are 
+extended to define a start and end time for a segment of interest within 
+that particular utterance or soundfile.  
+.MS feacalc 1 
+understands this additional information, and uses the same three options as 
+here to define how the numbers are converted into times.  If 
+\f4rangerate\f1 is zero, the utterance list is assumed not to contain 
+range specifications, and if they are present, the script will stop with an 
+error.  If \f4rangerate\f1 is nonzero, and the script sees two additional 
+arguments on the same line as the utterance ID in the list file, these are 
+taken as defining the start and end of a range within the file; 
+\f4rangerate\f1 defines the units of time they are counting (e.g. if the 
+times are in milliseconds, \f4rangerate\f1 would be 1000; note however 
+that the range times are not required to be integers).  
+\f4rngstartoffset\f1 and \f4rngendoffset\f1 are added as fixed constants to 
+every range value that is read, before it is converted to seconds by 
+dividing by \f4rangerate\f1.  If ranges are specified, they are used in 
+preference to the waveform file to define the target duration of the 
+emitted utterance; it is also the range-based duration that is written 
+to \f4durfile\f1.
+.SS Miscellaneous options
+.TP
+.B force=\fIbool\fR (0)
+For safety, 
+.I labels2pfile
+will, by default, refuse to overwrite an existing pfile.  If you really do 
+want it to overwrite, specify \f4force=1\f1.
+.TP
+.B verbose=\fIbool\fR ("normal")
+Specifying \f4verbose=quiet\f1 will suppress the usual per-utterance report 
+to standard error.
+.TP
+.B debug=\fIbool\fR ("0")
+Specifying \f4debug=1\f1 will cause the generation of lots of detailed 
+but cryptic trace information.
+.TP
+.B nocomplain=\fIbool\fR (0)
+Setting \f4nocomplain\f1 to 1 means that an empty transcription label file 
+name, or an unreadable or missing file, will not halt processing with an 
+error as it would otherwise, but that utterance will simply be skipped.  
+Normally, this would be a disaster since it is imperitive to know exactly 
+which utterance segments are present in a pfile (for instance, to hook it 
+up to target word transcriptions later).  However, in combination with 
+\f4durfile\f1, this option can be used to weed a list of utterance IDs for 
+the ones that actually have transcriptions; only the IDs of utterances 
+whose transcription files were found and successfully processed are written 
+to the \f4durfile\f1 record.
+.TP
+.B stripword=\fIbool\fR ("1")
+This option, set by default, filters each token read for a suffix 
+beginning with a "+" symbol, and removes it.  This is to handle 
+the so-called phn+word CTM file variants written by the 
+forthcoming 
+.MS dr_align 1
+script.  If any of your phoneset symbols include a meaningful "+", 
+remember to set stripword=0.
+.SH EXAMPLES
+To generate the labels file for the 'standard' numbers95 training set 
+from the OGI hand-labelled files:
+.EX
+labels2pfile \\
+  listfile=/u/drspeech/data/NUMBERS95/list/numbers95-cs-train-rand.utids \\
+  pfile=n95tr-labs.pf \\
+  phnfilecmd='numbers95_findfile type=phn prefix=/u/drspeech/data/NUMBERS95 utid=%u' \\
+  labeltype=timit \\
+  wavfilecmd='numbers95_findfile type=wav prefix=/u/drspeech/data/NUMBERS95 utid=%u' \\
+  steptime=10 \\
+  windowtime=25 \\
+  offsettime=-1.0
+.EE
+The offsettime of -1.0 ms makes these labels agree exactly with the ones 
+in the standard pfile; however, probably the labels would be equally or 
+more valid without it.  Of course, with embedded training, the exact 
+assignment of these starting variables is not critical.
+.SH NOTES
+Rounding is a fairly thorny issue in this kind of discretization 
+process; if the transcribed label boundary falls exactly in the middle of 
+an output frame, which symbol should that frame carry?  Does the symbol for 
+a frame in a pfile correspond to the instant at the beginning of that 
+frame, or to the acoustic data over the whole of a frame?  
+.I labels2pfile
+operates by stepping through the times at the start of each frame, 
+starting from a value derived from the \f4windowtime\f1 option, 
+and emitting the symbol that is defined in the label 
+transcription file at that exact instant; when the start of an output 
+frame falls exactly on the start of a segment defined in the transcription 
+file, it takes the symbol of that segment.  If the transcribed segment 
+starts even slightly afterwards, the emitted symbol is taken from the 
+preceding segment.  To avoid problems with floating-point representations, 
+times are converted into integer counts of sample frames before 
+comparison; this conversion is done with round (i.e. nearest integer value) 
+rather than floor (integer part).
+.P
+The net outcome of this policy is that successive applications of 
+.I labels2pfile
+followed by 
+.MS pfile2labels 1
+will result in identical transcription and label pfiles after the first 
+quantization pass.
+.P
+Currently, if the label EMPTY is passed to the script, it will convert
+this to id -1, which can be useful for marking "empty" alignments in
+pfiles.
+.SH BUGS
+Written in Tcl. Depends on the dpwetcl package, which is installed 
+under /u/drspeech/share.
+.MS pfile2labels 1
+hasn't yet been created (out of pfile2xlabels).
+.SH AUTHOR
+Dan Ellis  <dpwe@ICSI.Berkeley.EDU>
+.SH SEE ALSO
+.MS pfile2labels 1 ,
+.MS bn_file 1 ,
+.MS bn_stm2list 1 ,
+.MS bn_mkpfile 1 ,
+.MS feacalc 1 ,
+.MS numbers95_findfile 1 .

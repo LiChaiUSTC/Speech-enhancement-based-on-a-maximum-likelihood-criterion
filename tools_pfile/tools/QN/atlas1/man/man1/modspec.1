@@ -1,0 +1,172 @@
+.de Sh
+.br
+.ne 5
+.PP
+\fB\\$1\fR
+.PP
+..
+.de Sp
+.if t .sp .5v
+.if n .sp
+..
+.               \" Path Name
+.               \"      uses Courier fonts for V4.0
+.de PN
+.ie t \&\f(CB\\$1\f(NR\\$2
+.el \fI\\$1\fP\\$2
+..
+.		\" The following macros added by dpwe for Ultrix 4..
+.               \" Manual section reference
+.               \"      uses Courier fonts for V4.0
+.de MS
+.ie t \&\f(CB\\$1\f(NR(\\$2)\\$3
+.el \fI\\$1\fP(\\$2)\\$3
+..
+.de EX		\" Begin Example
+.ie \\n(.$ .nr EX \\$1n
+.el \{\
+.	ie n .nr EX 0n
+.	el .nr EX 0n
+.\}
+.in +\\n(EXu
+.if n .sp 1
+.if t .sp .5v
+.nf
+.CW
+.ft CB
+..
+.de EE		\" End example
+.in -\\n(EXu
+.fi
+.}f             \" restore basic text attributes
+.if n .sp 1
+.if t .sp .5v
+..
+.TH MODSPEC 1 "$Date: 2000/08/04 17:54:49 $" dpwe   \" $Header: /u/drspeech/src/bedk_frontend/RCS/modspec.man,v 1.1 2000/08/04 17:54:49 dpwe Exp $
+.SH NAME
+modspec - core program for calculating modulation-filtered spectrogram features
+.SH SYNOPSIS
+\fBmodspec
+[\-nfft \fIfftpts\fB]
+[\-nwin \fIwinpts\fB]
+[\-nstep \fIsteppts\fB]
+[\-fbw \fIbandwidth\fB]
+[\-fst \fIfiltstep\fB]
+[\-ftr \fItransreg\fB]
+[\-flpc \fIlocut\fB]
+[\-fshape \fIshape\fB]
+[\-fscale \fIscale\fB]
+[\-fnyq \fIfrac\fB]
+[\-efilt \fIsosfilename\fB]
+[\-agctau1 \fIsteps\fB]
+[\-agctau2 \fIsteps\fB]
+[\-ioblocking \fIblksize\fB]
+[\-sf \fIsamplefreq\fB]
+\fR
+.SH DESCRIPTION
+.PN modspec
+is one variant of the numerous programs written by Brian Kingsbury to 
+calculate his modulation-filtered spectrogram features, which have 
+become known as MSG.  They are all based on his library of C++ 
+signal processing units, which makes their sources (e.g. in /u/drspeech/bedk_frontend) rather simple to read.  This version performs the following steps
+(with the C++ class names show in parens):
+.PP
+* read online audio stream from standard input (OnlineSpeechInput)
+.PP
+* apply an auditory filterbank (PowspecFiltbank)
+.PP
+* subband envelopes are nonlinearly transformed by square-root (Nonlinearity)
+.PP
+* modulation-domain filtering is applied (SOSFilter)
+.PP
+* two cascaded stages of automatic gain control (Agc_Kohlrausch)
+.PP
+* write online features to standard output (OnlfeatureOutput)
+.PP
+This basic form covers a range of MSG features that are further 
+characterized by the particular set of modulation-domain filters 
+that are used (typically a pair), step size, sampling rate etc.  
+.PP
+.PN modspec
+reads and writes online streams from stdin and stdout, according to 
+the conventions of Brian's
+.MS drspeech_featools 1 .
+A script that handles all the logistics of converting lists of 
+sound files into a stream, merging the two MSG banks, and writing 
+the output as a pfile (or other format) is available as 
+.MS msgcalc 1
+whose parameters mirror the standard Rasta-PLP calculation program,
+.MS feacalc 1 .
+.SH OPTIONS
+The following options are recognized (defaults in parens):
+.TP
+.B -nfft \fIfftpts\fR (256)
+The point size of the FFT used in the initial filterbank analysis.
+.TP
+.B -nwin \fIwinpts\fR (256)
+The size of the hamming window to apply before the FFT, in points 
+(must fit within the FFT size).
+.TP
+.B -nstep \fIsteppts\fR (128)
+The advance between successive analysis windows, in points.  Determines the 
+frame rate at which the modulation filters will be applied.
+.TP
+.B -fbw \fIbandwidth\fR (1.0)
+The width of each filter, in Bark or something.
+.TP
+.B -fst \fIfiltstep\fR (1.0)
+The step between successive filter centers, also in Bark or something.
+.TP
+.B -ftr \fItransreg\fR (1.0)
+The width of the transition region used for the filters, also in Bark or something.
+.TP
+.B -flpc \fIlocut\fR (200)
+Low-pass cutoff for initial frequency analysis, in Hz.  Energy below this 
+frequency is discarded.  This helps eliminate any effects of DC offsets 
+in the waveform data.
+.TP
+.B -fshape \fIshape\fR ("TRIANGULAR")
+The shape of the simulated auditory filters derived from the FFT. 
+If not TRIANGULAR, these can be TRAPEZOIDAL.
+.TP
+.B -fnyq \fIfrac\fR (1.0)
+Fraction of the true Nyquist bandwidth to actually use.  Typically 
+this is left as default (for normal operation) or set to 0.5 
+(to simulate downsampling 16 kHz waveforms to 8 kHz before analysis).
+.TP
+.B -efilt \fIsosfilename\fR
+Name of the file defining the modulation-domain filter to be used, 
+in Brian's binary SOS (second-order-section) file format.  These 
+filters define the modulation passband (typically summarized as 
+lower and upper cutoff frequencies in the range 0-30 Hz) and 
+must have been designed to match the frame rate implied by 
+-nstep.  Filters can be read and written by the local Matlab 
+functions read_sos and write_sos.
+.PD 0
+.B -agctau1 \fIsteps\fR
+.TP
+.PD 1
+.B -agctau2 \fIsteps\fR
+The time constants (in steps) for the two cascaded AGC sections.
+.TP
+.B -ioblocking \fIblksize\fR (8000)
+How many samples are read in each read operation.
+.TP
+.B -sf \fIsamplefreq\fR (8000)
+The sampling rate (in Hz) of the input sound data.
+.SH BUGS
+The SOS files do actually include a sampling rate specification, but 
+this typically holds the audio waveform sampling rate (which is 
+irrelevent); it should really hold the envelope domain frame rate, 
+and modspec should flag an error if the filters don't agree with 
+the steptime/samplingrate that is being used.  As it stands, it's 
+frighteningly easy to use inappropriate filters without realizing.
+.SH SEE ALSO
+.MS msgcalc 1 ,
+.MS drspeech_featools 1 .
+.SH AUTHORS
+Brian Kingsbury
+.B bedk@icsi.berkeley.edu 
+(Man page by Dan Ellis
+.B dpwe@icsi.berkeley.edu 
+).
