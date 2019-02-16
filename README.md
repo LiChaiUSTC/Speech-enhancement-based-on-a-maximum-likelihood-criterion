@@ -56,7 +56,7 @@ The paramters "MLflag" and "shapefactor" in "finetune.pl" control the choice of 
 - When MLflag=1, the GGD error model based log-likelihood function is selected as the objective function, where "shapefactor" refers to the shape factor β in GGD. 
 
 #### Implementation details
-In this paper, we propose a new objective function. The codes for our proposed ML-GGD-DNN can be obtained by making minor modifications based on the code for MMSE-DNN. More specifically, we only need to modify the gradient of the objective function with respect to the output in the backpropagation part of the codes for MMSE-DNN.
+In this paper, we propose a new objective function. The codes for our proposed ML-GGD-DNN can be obtained by making minor modifications based on the codes for MMSE-DNN. More specifically, we only need to modify the gradient of the objective function with respect to the output in the backpropagation part of the codes for MMSE-DNN.
 
 The following codes are from the lines 408 to 423 of "BP_GPU.cu", which is to calculate the gradient of the objective funtion with respect to the output. The called functions are defined in "DevFunc.cu".
 
