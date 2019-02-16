@@ -123,7 +123,7 @@ Select one well-trained model and change the suffix 'wts' to 'mat'. Then execute
 
 <table>
         <tr>
-            <th width="220">Clean</th>
+            <th width="220">[Clean](Enh_demos/DestroyerOperations_SNR5_CLEAN_TEST_DR7_FDHC0_SI929.WAV)</th>
             <th width="260">Noisy(Destroyer Operations)</th>
             <th width="230">MMSE</th>
             <th width="230">ML</th>
