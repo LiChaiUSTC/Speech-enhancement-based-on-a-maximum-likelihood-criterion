@@ -102,7 +102,7 @@ The following codes are from the lines 408 to 423 of "BP_GPU.cu", which is to ca
     ![公式](https://latex.codecogs.com/gif.latex?\alpha_d=\left(\frac{\beta}{M}\sum_{m=1}^{M}|x_{m,d}-\hat{x}_{m,d}(\boldsymbol{y}_{m-\tau}^{m&plus;\tau},&space;\boldsymbol{W})|^{\beta}\right)^{\frac{1}{\beta}})
     
     Second, **W** is optimized by the backpropagation procedure with the SGD method by fixing **α**.
-    The function "Devfun2" achieves the calculation of the gradient of ![公式](https://latex.codecogs.com/gif.latex?E(\boldsymbol{W},\boldsymbol{\alpha})) with respect to the output ![公式](https://latex.codecogs.com/gif.latex?\hat{x}_{n,d}(y_{n-\tau}^{n&plus;\tau},\boldsymbol{W})) as follows:
+    The function "Devfun2" achieves the calculation of the gradient of ![公式](https://latex.codecogs.com/gif.latex?E(\boldsymbol{W},\boldsymbol{\alpha})) with respect to the output ![公式](https://latex.codecogs.com/gif.latex?\hat{x}_{m,d}(y_{m-\tau}^{m&plus;\tau},\boldsymbol{W})) as follows:
 
     ![公式](https://latex.codecogs.com/gif.latex?\frac{\partial&space;E(\boldsymbol{W},\boldsymbol{\alpha})}{\partial&space;\hat{x}_{m,d}(y_{m-\tau}^{m&plus;\tau},\boldsymbol{W})}=\frac{\beta}{\alpha_d^{\beta}}\mathop{\rm&space;sgn}\left(\hat{x}_{m,d}(y_{m-\tau}^{m&plus;\tau},\boldsymbol{W})-x_{m,d}\right)|x_{m,d}-\hat{x}_{m,d}(y_{m-\tau}^{m&plus;\tau},\boldsymbol{W})|^{\beta-1}.)
 
