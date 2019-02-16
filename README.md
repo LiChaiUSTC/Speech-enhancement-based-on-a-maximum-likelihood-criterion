@@ -41,7 +41,7 @@ Note that the reciprocal of standard deviation rather than standard deviation is
 
 2.g++
 #### cd Train\_code\_ML\_GGD
-This code is for feed-forward DNN training, where the optimization criterion can be 
+This code is for regression feed-forward DNN training, where the optimization criterion can be 
 conventional MMSE or our proposed objective function with GGD error model derived according to ML criterion.
 
 1.Execute `make` to generate the executable file "BPtrain_Sigmoid" 
