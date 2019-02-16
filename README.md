@@ -116,16 +116,14 @@ Select one well-trained model and change the suffix 'wts' to 'mat'. Then execute
 ## Demos:
 #### cd Enh_demos
 
-<figure>
-    <img src="https://i.imgur.com/h6UB0qY.png" width="230" title="Clean"/> 
-    <img src="https://i.imgur.com/utBjeXl.png" width="230" title="Noisy"/> 
-    <img src="https://i.imgur.com/lNuwlIQ.png" width="230" title="MMSE"/> 
-    <img src="https://i.imgur.com/W23l6sf.png" width="230" title="ML-GGD-DNN"/> 
-</figure>
-<table border="1" width="100%">
+<center class="half">
+    <img src="https://i.imgur.com/h6UB0qY.png" width="220"/>  <img src="https://i.imgur.com/utBjeXl.png" width="220"/> <img src="https://i.imgur.com/lNuwlIQ.png" width="220"/> <img src="https://i.imgur.com/W23l6sf.png" width="220"/>
+</center>
+
+<table>
         <tr>
-            <th width="230">[Clean](http://www.lunarsf.club "我的个人网站")</th>
-            <th width="230">Noisy(Destroyer Operations)</th>
+            <th width="220">Clean</th>
+            <th width="260">Noisy(Destroyer Operations)</th>
             <th width="230">MMSE</th>
             <th width="230">ML</th>
         </tr>
