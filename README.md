@@ -159,11 +159,11 @@ Select one well-trained model and change the suffix 'wts' to 'mat'. Then execute
   <p class="STYLE2">Selected results on the remaining <strong>unseen</strong> noise types: </p>
   <table width="692" border="1">
     <tr>
-      <td width="166">&nbsp;</td>
-      <td width="126"><div align="center">Clean</div></td>
-      <td width="124"><div align="center">Noisy</div></td>
-      <td width="120"><div align="center">MMSE</div></td>
-      <td width="122"><div align="center">ML</div></td>
+      <td width="250">&nbsp;</td>
+      <td width="100"><div align="center">Clean</div></td>
+      <td width="100"><div align="center">Noisy</div></td>
+      <td width="100"><div align="center">MMSE</div></td>
+      <td width="100"><div align="center">ML</div></td>
     </tr>
     <tr>
       <td>JetCockpit2, SNR5 </td>
