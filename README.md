@@ -116,6 +116,74 @@ Select one well-trained model and change the suffix 'wts' to 'mat'. Then execute
 
 ## Demos:
 #### cd Enh_demos
+ <p class="STYLE1"><strong>Section 1: More enhanced speech demos based on Deep neural networks </strong></p>
+  <p class="STYLE2">Selected results on some <strong>unseen</strong> noise types at the common SNRs (10dB, 5dB): </p>
+  <table width="692" border="1">
+    <tr>
+      <td width="166">&nbsp;</td>
+      <td width="126"><div align="center">Improved DNN</div></td>
+      <td width="124"><div align="center">LogMMSE</div></td>
+      <td width="120"><div align="center">Noisy</div></td>
+      <td width="122"><div align="center">Clean</div></td>
+    </tr>
+    <tr>
+      <td>Machine gun, SNR10 </td>
+      <td><div align="center"><a href="Taslp_WAVs/unseen_noises/machinegun10dB/DNN_Machinegun_SNR10.wav">wav</a></div></td>
+      <td><div align="center"><a href="Taslp_WAVs/unseen_noises/machinegun10dB/LogMMSE_Machinegun_SNR10.wav">wav</a></div></td>
+      <td><div align="center"><a href="Taslp_WAVs/unseen_noises/machinegun10dB/noisy_Machinegun_SNR10.wav">wav</a></div></td>
+      <td><div align="center"><a href="Taslp_WAVs/unseen_noises/machinegun10dB/wav_clean.wav">wav</a></div></td>
+    </tr>
+    <tr>
+      <td>Machine gun, SNR5</td>
+      <td><div align="center"><a href="Taslp_WAVs/unseen_noises/machinegun5dB/DNN_Machinegun_SNR5.wav">wav</a></div></td>
+      <td><div align="center"><a href="Taslp_WAVs/unseen_noises/machinegun5dB/LogMMSE_Machinegun_SNR5.wav">wav</a></div></td>
+      <td><div align="center"><a href="Taslp_WAVs/unseen_noises/machinegun5dB/noisy_Machinegun_SNR5.wav">wav</a></div></td>
+      <td><div align="center"><a href="Taslp_WAVs/unseen_noises/machinegun5dB/wav_clean.wav">wav</a></div></td>
+    </tr>
+    <tr>
+      <td>Buccaneer1, SNR10</td>
+      <td><div align="center"><a href="Taslp_WAVs/unseen_noises/buccaneer1_SNR10dB/DNN_buccaneer1_SNR10.wav">wav</a></div></td>
+      <td><div align="center"><a href="Taslp_WAVs/unseen_noises/buccaneer1_SNR10dB/LogMMSE_buccaneer1_SNR10.wav">wav</a></div></td>
+      <td><div align="center"><a href="Taslp_WAVs/unseen_noises/buccaneer1_SNR10dB/noisy_buccaneer1_SNR10.wav">wav</a></div></td>
+      <td><div align="center"><a href="Taslp_WAVs/unseen_noises/buccaneer1_SNR10dB/wav_clean.wav">wav</a></div></td>
+    </tr>
+    <tr>
+      <td>Buccaneer1, SNR5</td>
+      <td><div align="center"><a href="Taslp_WAVs/unseen_noises/buccaneer1_SNR5dB/DNN_buccaneer1_SNR5.wav">wav</a></div></td>
+      <td><div align="center"><a href="Taslp_WAVs/unseen_noises/buccaneer1_SNR5dB/LogMMSE_buccaneer1_SNR5.wav">wav</a></div></td>
+      <td><div align="center"><a href="Taslp_WAVs/unseen_noises/buccaneer1_SNR5dB/noisy_buccaneer1_SNR5.wav">wav</a></div></td>
+      <td><div align="center"><a href="Taslp_WAVs/unseen_noises/buccaneer1_SNR5dB/wav_clean.wav">wav</a></div></td>
+    </tr>
+    <tr>
+      <td>Destroyer engine, SNR10</td>
+      <td><div align="center"><a href="Taslp_WAVs/unseen_noises/destroyerengine_SNR10/DNN_destroyerengine_SNR10.wav">wav</a></div></td>
+      <td><div align="center"><a href="Taslp_WAVs/unseen_noises/destroyerengine_SNR10/LogMMSE_destroyerengine_SNR10.wav">wav</a></div></td>
+      <td><div align="center"><a href="Taslp_WAVs/unseen_noises/destroyerengine_SNR10/noisy_destroyerengine_SNR10.wav">wav</a></div></td>
+      <td><div align="center"><a href="Taslp_WAVs/unseen_noises/destroyerengine_SNR10/wav_clean.wav">wav</a></div></td>
+    </tr>
+    <tr>
+      <td>Destroyer engine, SNR5</td>
+      <td><div align="center"><a href="Taslp_WAVs/unseen_noises/destroyerengine_SNR5/DNN_destroyerengine_SNR5.wav">wav</a></div></td>
+      <td><div align="center"><a href="Taslp_WAVs/unseen_noises/destroyerengine_SNR5/LogMMSE_destroyerengine_SNR5.wav">wav</a></div></td>
+      <td><div align="center"><a href="Taslp_WAVs/unseen_noises/destroyerengine_SNR5/noisy_destroyerengine_SNR5.wav">wav</a></div></td>
+      <td><div align="center"><a href="Taslp_WAVs/unseen_noises/destroyerengine_SNR5/wav_clean.wav">wav</a></div></td>
+    </tr>
+    <tr>
+      <td>Factory1, SNR10</td>
+      <td><div align="center"><a href="Taslp_WAVs/unseen_noises/factory1_SNR10/DNN_factory1_SNR10.wav">wav</a></div></td>
+      <td><div align="center"><a href="Taslp_WAVs/unseen_noises/factory1_SNR10/LogMMSE_factory1_SNR10.wav">wav</a></div></td>
+      <td><div align="center"><a href="Taslp_WAVs/unseen_noises/factory1_SNR10/noisy_factory1_SNR10.wav">wav</a></div></td>
+      <td><div align="center"><a href="Taslp_WAVs/unseen_noises/factory1_SNR10/wav_clean.wav">wav</a></div></td>
+    </tr>
+    <tr>
+      <td>Factory1, SNR5</td>
+      <td><div align="center"><a href="Taslp_WAVs/unseen_noises/factory1_SNR5/DNN_factory1_SNR5.wav">wav</a></div></td>
+      <td><div align="center"><a href="Taslp_WAVs/unseen_noises/factory1_SNR5/LogMMSE_factory1_SNR5.wav">wav</a></div></td>
+      <td><div align="center"><a href="Taslp_WAVs/unseen_noises/factory1_SNR5/noisy_factory1_SNR5.wav">wav</a></div></td>
+      <td><div align="center"><a href="Taslp_WAVs/unseen_noises/factory1_SNR5/wav_clean.wav">wav</a></div></td>
+    </tr>
+  </table>
+<p><span class="STYLE1"><strong>Section 2: Related waveforms refered in the submitted paper </strong></span></p>
 <p><img src="https://i.imgur.com/h6UB0qY.png" width="210" /> <img src="https://i.imgur.com/utBjeXl.png" width="210"/> <img src="https://i.imgur.com/lNuwlIQ.png" width="210" /> <img src="https://i.imgur.com/W23l6sf.png" width="210" /></p>
   <table width="1000" height="33" border="1">
     <tr>
