@@ -110,7 +110,8 @@ The following codes are from the lines 408 to 423 of "BP_GPU.cu", which is to ca
 
 ## Step3: Testing
 #### cd Test_code
-Select one well-trained model and change the suffix 'wts' to 'mat'. Then execute the following command:
+Select one well-trained model and change the suffix 'wts' to 'mat'. Then execute the following command:    
+
 `matlab -nodesktop -nosplash -r decode`
 
 ## Demos:
