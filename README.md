@@ -1,6 +1,6 @@
 
 # DNN-based speech enhancement optimized by a maximum likelihood criterion rather than the conventional MMSE criterion
-This repository contains the code and supplementary result for the paper "Using Generalized Gaussian Distributions to Improve Regression Error Modeling for Deep-Learning-Based Speech Enhancement" (submitted to IEEE/ACM TRANSACTIONS ON AUDIO, SPEECH, AND LANGUAGE PROCESSING)
+This repository contains the codes and demos for the paper "Using Generalized Gaussian Distributions to Improve Regression Error Modeling for Deep-Learning-Based Speech Enhancement" (submitted to IEEE/ACM TRANSACTIONS ON AUDIO, SPEECH, AND LANGUAGE PROCESSING)
 
 ## Step1: Prepare the input and output files. 
 ### Step1.1: Extract log-power spectrum (LPS) features
