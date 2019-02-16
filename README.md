@@ -117,7 +117,7 @@ Select one well-trained model and change the suffix 'wts' to 'mat'. Then execute
 #### cd Enh_demos
 
 <center class="half">
-    <img src="https://i.imgur.com/h6UB0qY.png" width="200"/>  <img src="https://i.imgur.com/utBjeXl.png" width="200"/> <img src="https://i.imgur.com/lNuwlIQ.png" width="200"/> <img src="https://i.imgur.com/W23l6sf.png" width="200"/>
+    <img src="https://i.imgur.com/h6UB0qY.png" width="100"/>  <img src="https://i.imgur.com/utBjeXl.png" width="100"/> <img src="https://i.imgur.com/lNuwlIQ.png" width="100"/> <img src="https://i.imgur.com/W23l6sf.png" width="100"/>
 </center>
 
 <table>
