@@ -134,5 +134,13 @@ Select one well-trained model and change the suffix 'wts' to 'mat'. Then execute
       <td width="210"><div align="center">(d) <a href="Enh_demos/Factory1_SNR5_ML_TEST_DR2_FPAS0_SI2204.wav">ML</a></div></td>
     </tr>
   </table>
-
+<p><img src="https://i.imgur.com/qXuzGwz.png" width="210" /> <img src="https://i.imgur.com/04tXVKC.png" width="210"/> <img src="https://i.imgur.com/sel3lYn.png" width="210" /> <img src="https://i.imgur.com/g7g4VK2.png" width="210" /></p>
+  <table width="1000" height="33" border="1">
+    <tr>
+      <td width="210"><div align="center">(a) <a href="Enh_demos/MachineGun_SNR5_CLEAN_TEST_DR2_FPAS0_SX404.WAV">Clean </a></div></td>
+      <td width="210"><div align="center">(b) <a href="Enh_demos/MachineGun_SNR5_NOISY_TEST_DR2_FPAS0_SX404.wav">Noisy</a></div></td>
+      <td width="210"><div align="center">(c) <a href="Enh_demos/MachineGun_SNR5_MMSE_TEST_DR2_FPAS0_SX404.wav">MMSE</a></div></td>
+      <td width="210"><div align="center">(d) <a href="Enh_demos/MachineGun_SNR5_ML_TEST_DR2_FPAS0_SX404.wav">ML</a></div></td>
+    </tr>
+  </table>
 
