@@ -123,9 +123,21 @@ Select one well-trained model and change the suffix 'wts' to 'mat'. Then execute
 
 <table>
         <tr>
-            <th width="220">[Clean](https://github.com/LiChaiUSTC/Speech-enhancement-based-on-a-maximum-likelihood-criterion/tree/master/Enh_demos/DestroyerOperations_SNR5_CLEAN_TEST_DR7_FDHC0_SI929.WAV)</th>
+            <th width="220">Clean</th>
             <th width="260">Noisy(Destroyer Operations)</th>
             <th width="230">MMSE</th>
             <th width="230">ML</th>
         </tr>
 </table>
+
+<p><img src="https://i.imgur.com/h6UB0qY.png" width="245" height="172" /> <img src="https://i.imgur.com/utBjeXl.png" width="244" height="173" /> <img src="https://i.imgur.com/lNuwlIQ.png" width="246" height="172" /> <img src="https://i.imgur.com/W23l6sf.png" width="244" height="172" /></p>
+  <table width="1000" height="21" border="1">
+    <tr>
+      <td width="242"><div align="center">(a) <a href="Enh_demos/DestroyerOperations_SNR5_CLEAN_TEST_DR7_FDHC0_SI929.WAV">Clean </a></div></td>
+      <td width="244"><div align="center">(b) <a href="Enh_demos/DestroyerOperations_SNR5_NOISY_TEST_DR7_FDHC0_SI929.wav">Noisy</a></div></td>
+      <td width="248"><div align="center">(c) <a href="Enh_demos/DestroyerOperations_SNR5_MMSE_TEST_DR7_FDHC0_SI929.wav">MMSE</a></div></td>
+      <td width="238"><div align="center">(d) <a href="Enh_demos/DestroyerOperations_SNR5_ML_TEST_DR7_FDHC0_SI929.wav">ML</a></div></td>
+    </tr>
+  </table>
+
+
