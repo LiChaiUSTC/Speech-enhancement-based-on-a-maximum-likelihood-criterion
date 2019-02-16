@@ -1,0 +1,11 @@
+prefix=/home/dujun/TANDEM/tools/QN/atlas1
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${exec_prefix}/include
+
+Name: QuickNet
+Description: QuickNet MLP Training Program and Library
+Version: v3_20
+Requires: 
+Libs: -L${libdir} -L/home/dujun/TANDEM/tools/ATLAS/build1/lib -lquicknet3 -lcblas -latlas -lpthread -lm 
+Cflags: -I${includedir}/quicknet3 -g -O2 -I/home/dujun/TANDEM/tools/ATLAS/build1/include
