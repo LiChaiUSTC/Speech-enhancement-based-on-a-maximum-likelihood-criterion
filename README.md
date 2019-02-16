@@ -202,38 +202,38 @@ Select one well-trained model and change the suffix 'wts' to 'mat'. Then execute
     </tr>
     <tr>
       <td>Military Vehicle, SNR0</td>
-      <td><div align="center"><a href="MilitaryVehicle_SNR0_CLEAN_TEST_DR2_FPAS0_SX404.WAV">wav</a></div></td>
-      <td><div align="center"><a href="MilitaryVehicle_SNR0_NOISY_TEST_DR2_FPAS0_SX404.wav">wav</a></div></td
-      <td><div align="center"><a href="MilitaryVehicle_SNR0_MMSE_TEST_DR2_FPAS0_SX404.wav">wav</a></div></td>
-      <td><div align="center"><a href="MilitaryVehicle_SNR0_ML_TEST_DR2_FPAS0_SX404.wav">wav</a></div></td>
+      <td><div align="center"><a href="Enh_demos/MilitaryVehicle_SNR0_CLEAN_TEST_DR2_FPAS0_SX404.WAV">wav</a></div></td>
+      <td><div align="center"><a href="Enh_demos/MilitaryVehicle_SNR0_NOISY_TEST_DR2_FPAS0_SX404.wav">wav</a></div></td
+      <td><div align="center"><a href="Enh_demos/MilitaryVehicle_SNR0_MMSE_TEST_DR2_FPAS0_SX404.wav">wav</a></div></td>
+      <td><div align="center"><a href="Enh_demos/MilitaryVehicle_SNR0_ML_TEST_DR2_FPAS0_SX404.wav">wav</a></div></td>
     </tr>
     <tr>
       <td>M109 Tank, SNR-5</td>
-      <td><div align="center"><a href="M109Tank_SNR-5_CLEAN_TEST_DR1_MDAB0_SI1039.WAV">wav</a></div></td>
-      <td><div align="center"><a href="M109Tank_SNR-5_NOISY_TEST_DR1_MDAB0_SI1039.wav">wav</a></div></td>
-      <td><div align="center"><a href="M109Tank_SNR-5_MMSE_TEST_DR1_MDAB0_SI1039.wav">wav</a></div></td>
-      <td><div align="center"><a href="M109Tank_SNR-5_ML_TEST_DR1_MDAB0_SI1039.wav">wav</a></div></td>
+      <td><div align="center"><a href="Enh_demos/M109Tank_SNR-5_CLEAN_TEST_DR1_MDAB0_SI1039.WAV">wav</a></div></td>
+      <td><div align="center"><a href="Enh_demos/M109Tank_SNR-5_NOISY_TEST_DR1_MDAB0_SI1039.wav">wav</a></div></td>
+      <td><div align="center"><a href="Enh_demos/M109Tank_SNR-5_MMSE_TEST_DR1_MDAB0_SI1039.wav">wav</a></div></td>
+      <td><div align="center"><a href="Enh_demos/M109Tank_SNR-5_ML_TEST_DR1_MDAB0_SI1039.wav">wav</a></div></td>
     </tr>
     <tr>
       <td>Pink, SNR-5</td>
-      <td><div align="center"><a href="Pink_SNR-5_CLEAN_TEST_DR4_MLLL0_SX373.WAV">wav</a></div></td>
-      <td><div align="center"><a href="Pink_SNR-5_NOISY_TEST_DR4_MLLL0_SX373.wav">wav</a></div></td>
-      <td><div align="center"><a href="Pink_SNR-5_MMSE_TEST_DR4_MLLL0_SX373.wav">wav</a></div></td>
-      <td><div align="center"><a href="Pink_SNR-5_ML_TEST_DR4_MLLL0_SX373.wav">wav</a></div></td>
+      <td><div align="center"><a href="Enh_demos/Pink_SNR-5_CLEAN_TEST_DR4_MLLL0_SX373.WAV">wav</a></div></td>
+      <td><div align="center"><a href="Enh_demos/Pink_SNR-5_NOISY_TEST_DR4_MLLL0_SX373.wav">wav</a></div></td>
+      <td><div align="center"><a href="Enh_demos/Pink_SNR-5_MMSE_TEST_DR4_MLLL0_SX373.wav">wav</a></div></td>
+      <td><div align="center"><a href="Enh_demos/Pink_SNR-5_ML_TEST_DR4_MLLL0_SX373.wav">wav</a></div></td>
     </tr>
     <tr>
       <td>Volvo, SNR-5</td>
-      <td><div align="center"><a href="Volvo_SNR-5_CLEAN_TEST_DR3_FPKT0_SX278.WAV">wav</a></div></td>
-      <td><div align="center"><a href="Volvo_SNR-5_NOISY_TEST_DR3_FPKT0_SX278.wav">wav</a></div></td>
-      <td><div align="center"><a href="Volvo_SNR-5_MMSE_TEST_DR3_FPKT0_SX278.wav">wav</a></div></td>
-      <td><div align="center"><a href="Volvo_SNR-5_ML_TEST_DR3_FPKT0_SX278.wav">wav</a></div></td>
+      <td><div align="center"><a href="Enh_demos/Volvo_SNR-5_CLEAN_TEST_DR3_FPKT0_SX278.WAV">wav</a></div></td>
+      <td><div align="center"><a href="Enh_demos/Volvo_SNR-5_NOISY_TEST_DR3_FPKT0_SX278.wav">wav</a></div></td>
+      <td><div align="center"><a href="Enh_demos/Volvo_SNR-5_MMSE_TEST_DR3_FPKT0_SX278.wav">wav</a></div></td>
+      <td><div align="center"><a href="Enh_demos/Volvo_SNR-5_ML_TEST_DR3_FPKT0_SX278.wav">wav</a></div></td>
     </tr>
     <tr>
       <td>White, SNR5</td>
-      <td><div align="center"><a href="White_SNR5_CLEAN_TEST_DR2_MWEW0_SX11.WAV">wav</a></div></td>
-      <td><div align="center"><a href="White_SNR5_NOISY_TEST_DR2_MWEW0_SX11.wav">wav</a></div></td>
-      <td><div align="center"><a href="White_SNR5_MMSE_TEST_DR2_MWEW0_SX11.wav">wav</a></div></td>
-      <td><div align="center"><a href="White_SNR5_ML_TEST_DR2_MWEW0_SX11.wav">wav</a></div></td>
+      <td><div align="center"><a href="Enh_demos/White_SNR5_CLEAN_TEST_DR2_MWEW0_SX11.WAV">wav</a></div></td>
+      <td><div align="center"><a href="Enh_demos/White_SNR5_NOISY_TEST_DR2_MWEW0_SX11.wav">wav</a></div></td>
+      <td><div align="center"><a href="Enh_demos/White_SNR5_MMSE_TEST_DR2_MWEW0_SX11.wav">wav</a></div></td>
+      <td><div align="center"><a href="Enh_demos/White_SNR5_ML_TEST_DR2_MWEW0_SX11.wav">wav</a></div></td>
     </tr>
   </table>
 
