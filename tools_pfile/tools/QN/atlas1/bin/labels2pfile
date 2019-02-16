@@ -1,0 +1,593 @@
+#!/usr/local/bin/tclsh8
+# -*- Tcl -*-
+#
+# labels2pfile (formerly xlabel2pfile)
+#
+# Convert a set of individual label files into pfile labels
+# Respect the same conventions as pfile2labels
+#
+# 1997mar26 dpwe@icsi.berkeley.edu
+# 1998may24 adapted for installation as an ICSI-wide tool.
+# $Header: /u/drspeech/src/labels2pfile/labels2pfile.in,v 1.13 2000/09/23 21:41:54 dpwe Exp $
+
+# Load libraries
+#lappend auto_path [glob ~dpwe/share/lib]
+lappend auto_path /home/jiapan/tools/QN/atlas1/lib
+package require Dpwe_Utilfns
+
+# More packages specific to this task
+package require Dpwe_Labelfilefns
+package require Dpwe_Phonesetfns
+
+# Make sure Phonesetfns is really loaded, to set up global vars ($phonsetFile)
+eval $auto_index(ReadPhoneset)
+set phoneset $phonesetFile
+
+#set dpwelib "/u/dpwe/lib/share/tcl"
+#set stplib "/u/stp/share/lib/stp-tcl"
+#source "$dpwelib/utilfns.tcl"
+#source "$dpwelib/phonesetfns.tcl"
+## Need xlabels-access fns
+#source "$stplib/stp-readphn.tcl"
+#source "$stplib/stp-syldurs.tcl"
+## For WavSamplesQuick
+#source "$stplib/stp-statusfile-fns.tcl"
+
+proc labdurs2ixseq {labs {frametime 0.010} \
+	{startoffset "0.0"} {endoffset "0.0"} {durationvar ""}} {
+    # Take $labs, a set of {start dur token} triples from, e.g., 
+    # ReadLabelFilesTI; return as a list of label indexes at 
+    # the specified framerate (i.e. 1 per $frametime sec)
+    # Add $offset (in sec) onto each time retrieved; strip it if 
+    # the result is less than zero
+    global debug
+    # Use the sample rate just as a quantization base to do calculations 
+    # on integers rather than floating-point times
+    global samplerate
+    # Need to know what silence is, to start off with
+    global silencephone
+    # .. and should we strip +WORD from "phn+WORD" tokens?
+    global stripword
+    # Make link to duration, passed by reference; we may set it.
+    if {$durationvar != ""} {
+	upvar $durationvar duration
+    } else {
+	set duration 0.0
+    }
+    # maybe report labels
+    if {$debug} {
+	puts stderr "Debug: frametime=$frametime startoffset=$startoffset endoffs=$endoffset dur=$duration"
+	puts stderr "Debug: $labs"
+    }
+    # If default duration passed in, take it from the last label
+    if {$duration <= 0.0} {
+	lassign [lindex $labs e] start dur tok
+	if {$stripword} {regsub {\+.*} $tok "" tok}
+	set duration [expr $start+$dur]
+    }
+    # Make time just a little ahead of the beat
+#    set time [expr 20.0*$frametime]
+    set frame 0
+    set time [expr $startoffset+$frame*$frametime]
+    set sample [expr round($time * $samplerate)]
+    # Make sure first label is read first time thru loop
+    set nextstarttime ""
+    set nextendtime 0.0
+    set done 0
+    set out ""
+    set labelix [PhoneIndex $silencephone]
+    # finaltime is actually the time of the sample *after* the 
+    # last one we have; thus, if we have 8000 samples, 
+    # finaltime is just over 1.0s
+    # If we didn't do this, the last full frame would get rejected.
+    set finaltime [expr $duration+$endoffset+1.0/$samplerate]
+    set finalsample [expr round($samplerate * $finaltime)]
+    while {$sample < $finalsample} {
+	# Read the time for the end of this segment
+	if {$labs != ""} {
+	    # Read the next label to find start of next segment
+	    lassign [car $labs] start dur tok
+	    if {$stripword} {regsub {\+.*} $tok "" tok}
+	    set labs [cdr $labs]
+	    set nextstarttime [expr $start+0.0]
+	    set nextendtime [expr $nextstarttime+$dur]
+	    set nextlabix [PhoneIndex $tok]
+	} else {
+	    # End of labels reached.  Just run through to end 
+	    # of this segment
+	    set nextstarttime $nextendtime
+	    # And if we keep going *after* that, pad with silence
+	    set nextendtime $finaltime
+	    set nextlabix [PhoneIndex $silencephone]
+	    set done 1
+	}
+	set nextstartsamp [expr round($nextstarttime * $samplerate)]
+	while {$sample < $nextstartsamp && $sample < $finalsample} {
+	    lappend out $labelix
+	    incr frame
+	    set time [expr $startoffset+$frame*$frametime]
+	    set sample [expr round($time * $samplerate)]
+	}
+	set labelix $nextlabix
+    }
+    if {$debug} {
+	puts stderr "Debug: got: $out"
+    }
+    return $out
+}
+
+proc CTMOpen {filename} {
+    # Open a multi-utt CTM file; return the file handle
+    if {$filename == "-"} {
+	set f "stdin"
+    } else {
+	set f [Open $filename "r"]
+    }
+    return $f
+}
+
+proc CTMClose {handle} {
+    # Reverse of CTMOpen
+    if {$handle != "stdin"} {
+	close $handle
+    }
+}
+
+set _ctm_cache ""
+proc CTMReadLabels {handle} {
+    # Read the next utterance block from the open CTM file
+    # Return as a {start dur tok} list.
+    global _ctm_cache
+    # Track which utid we're reading
+    set thisutid ""
+    # Cumulate output
+    set labdurs {}
+
+    set line ""
+    if {$_ctm_cache != ""} {
+	set line $_ctm_cache
+	set _ctm_cache ""
+    }
+    while {![eof $handle]} {
+	if {$line == ""} {
+	    set line [string trim [gets $handle]]
+	}
+	if {$line != "" && [string index $line 0] != "#" \
+		&& [string index $line 0] != "#"} {
+	    # e.g "1 A 0.000 0.304               <SIL>  -4.9232"
+	    lassign $line utid chan start dur tok conf
+	    if {$thisutid == ""} {
+		set thisutid $utid
+	    }
+	    if {$utid != $thisutid} {
+		# First line of next utterance - save in cache & return
+		set _ctm_cache $line
+		break
+	    } else {
+		lappend labdurs [list $start $dur $tok]
+	    }
+	}
+	set line ""
+    }
+    return $labdurs
+}
+
+# Clean up the reported name
+set argv0 [file tail $argv0]
+
+# Specify the args
+set listfile ""
+set ctmfile ""
+set pfile ""
+# steptime is the duration (in ms) of each frame
+set steptime "10.0"
+# (used to be called frame_step)
+set windowtime "25.0"
+# (to calculate sampleslop & influence offsettime)
+
+# Dummy to check not being used
+set frame_step ""
+
+# Which sentences to do
+set sent_start "0"
+set sent_count "0"
+
+set labeltype "timit"
+set force 0
+set phnfilecmd ""
+set phndirectory "."
+set phnextension ".phn"
+set wavfilecmd ""
+set wavdirectory ""
+set wavextension ".wav"
+set offsettime "0.0"
+set zeropad "0.0"
+set silencephone "h#"
+
+# Option to strip word part of "phn+WORD" compound labels (per Eric)
+set stripword 1
+
+# Output maximum label times to a list file
+set durfile ""
+
+set debug 0
+set map61to56 0
+set map61to54 0
+
+set verbose "normal"
+set help ""
+
+# Flag to tolerate missing phn files
+set nocomplain 0
+
+# For calculating ranged offsets
+set rangerate 0.0
+set rngstartoffset 0.0
+set rngendoffset 0.0
+
+# For guessing actual length from wav files & mapping rangerate to samples
+set samplerate 8000.0
+
+# For converting timit labefile indices to times
+set label_framerate 1000.0
+
+# Output label file format - pfile or ilab
+set opformat "pfile"
+
+# Optional file specifying desired output framelens
+set deslenfile ""
+
+if {!$tcl_interactive} {
+
+GetICSIargs "listfile ctmfile pfile frame_step steptime windowtime sent_start sent_count labeltype map61to56 map61to54 force phnfilecmd phndirectory phnextension wavfilecmd wavdirectory wavextension label_framerate samplerate offsettime debug rangerate rngstartoffset rngendoffset phoneset zeropad verbose help durfile nocomplain stripword opformat silencephone deslenfile"
+
+if {$pfile == "" || ($listfile == "" && $argv == "" && $ctmfile == "") || $help != ""} {
+    puts stderr "Usage: $argv0 listfile=<idlistfile ..> \[ctmfile=<ctmfile>\] pfile=<output.pfile> phndirectory=<inputdir> \[uttids..\]"
+    puts stderr "  reads xlabel phone label files from <dir> named for the "
+    puts stderr "  labels in the <idlist> file, and converts them into a "
+    puts stderr "  pfile of just labels."
+    puts stderr "  Use map61to56=1 to ensure timit-to-icsi mapping"
+    puts stderr "  Use map61to54=1 to ensure timit-to-cambridge mapping"
+    puts stderr ""
+    puts stderr "  If ctmfile is defined, read phn transcriptions from there."
+    puts stderr ""
+    puts stderr "  Default steptime=$steptime ms (formerly frame_step)"
+    puts stderr "  Default windowtime=$windowtime ms (to calc. sampleslop)"
+    puts stderr "  Default phoneset=$phoneset"
+    puts stderr "  Default sent_start=$sent_start"
+    puts stderr "  Default sent_count=$sent_count"
+    puts stderr "  Default labeltype=$labeltype"
+    puts stderr "  Default samplerate=$samplerate Hz"
+    puts stderr "  Default label_framerate=$label_framerate Hz (for timitlabs)"
+    puts stderr ""
+    puts stderr "  Default rangerate=$rangerate Hz for mapping start/end range"
+    puts stderr "  Default rngstartoffset=$rngstartoffset (pre-scaling)"
+    puts stderr "  Default rngendoffset=$rngendoffset (pre-scaling)"
+    puts stderr ""
+    puts stderr "  Default phndirectory=$phndirectory"
+    puts stderr "  Default phnextension=$phnextension"
+    puts stderr "  ..or use phnfilecmd %u to map utid to phnfilename."
+    puts stderr ""
+    puts stderr "  Default offsettime=$offsettime *ms* (added to read labels)"
+    puts stderr ""
+    puts stderr "  Default opformat=$opformat (pfile or ilab)"
+    puts stderr ""
+    puts stderr "  Default zeropad=$zeropad ms (added each end, like feacalc)"
+    puts stderr "  Default silencephone=$silencephone (looked up for index in pads)"    
+    puts stderr "  Specify wavdirectory and wavextension(=$wavextension)"
+    puts stderr "   (or wavfilecmd) to optionally force the last label in each"
+    puts stderr "   file to align with the end of the wav file (if found)."
+    puts stderr "   zeropad added *after* wav alignment."
+    puts stderr ""
+    puts stderr "  Use force=1 to prevent refusal to overwrite output file."
+    puts stderr "  Use verbose=quiet to silence progress messages."
+    puts stderr "  Use durfile=<fname> to write a file of utid duration"
+    puts stderr "  nocomplain=1 means that a missing or null phnfilename"
+    puts stderr "    is just a cause for warning, not a crash"
+    puts stderr ""
+    puts stderr "  stripword=$stripword ignores word part of \"phn+WORD\""
+    puts stderr "  optional deslenfile=filename is file containing frame counts for output"
+    exit 0
+}
+
+if {$frame_step != ""} {
+    puts stderr "$argv0: NOTE: frame_step is now steptime, continuing"
+    set steptime $frame_step
+}
+
+# Read the deslenfile, if any
+if {$deslenfile != ""} {
+    set f [open $deslenfile "r"]
+    set deslens [split [read -nonewline $f] "\n"]
+    close $f
+} else {
+    set deslens ""
+}
+
+# Figure out where in frame to sample the label boundary
+set midwinoffset [expr $windowtime/2000.0]
+# i.e. half-a-window expressed in seconds, not milliseconds
+
+# Load the default phoneset
+ReadPhoneset $phoneset
+global phonesetArray
+set phonesetArray(EMPTY) -1
+
+if {$map61to56 && $map61to54} {
+    puts stderr "Only one of map61to56 and map61to54 can be specified"
+    exit -1
+} elseif {$map61to56} {
+    Setup61to56
+} elseif {$map61to54} {
+    Setup61to54
+}
+
+# Check that offsettime specified in ms, not seconds
+if {$offsettime != 0.0 && abs($offsettime) < 2.0} {
+    puts stderr "**WARNING: offsettime of $offsettime seems very small \n   Remember, it is specified in ms, not seconds"
+}
+
+# Check that we can write a new pfile
+if {[file exists $pfile] && !$force} {
+    puts stderr "I refuse to overwrite pfile $pfile (unless force=1)"
+    exit -1
+}
+
+## Write a tmp ascii file
+#set tmpfile "/usr/tmp/xl2pf[pid].tmp"
+## Open it
+#set tmpf [open $tmpfile "w"]
+# Have the pfile_create process sitting on a pipe to write info to.
+if {$opformat == "pfile"} {
+    set tmpf [open "| pfile_create -o $pfile -f 0 -l 1 -i -" "w"]
+} elseif {$opformat == "ilab"} {
+    set tmpf [open "| ilab_create -o $pfile -f 0 -l 1 -i -" "w"]
+} elseif {$opformat == "debug"} {
+    set tmpf [open "$pfile" "w"]
+} else {
+    Error "unrecognized opformat '$opformat' - not 'pfile' or 'ilab'"
+}
+
+# Maybe write utid/duration pairs to a file...
+if {$durfile != ""} {
+    if {$durfile == "-"} {
+	set durf stdout
+    } else {
+	set durf [open $durfile "w"]
+    }
+} else {
+    # Dummy fileid for durfile
+    set durf [open "/dev/null" "w"]
+}
+
+# How many samples in each of our frames?
+set framesamples [expr round($steptime/1000.0*$samplerate)]
+# What is the frame time in seconds?
+set frametime [expr $steptime/1000.0]
+
+# make sure other rates are floats
+set samplerate [expr 0.0+$samplerate]
+set label_framerate [expr 0.0+$label_framerate]
+
+set hpound [PhoneIndex $silencephone]
+
+set rangestart 0.0
+
+# Progress variables
+set sentno 0
+set alldone 0
+set totsents 0
+set totframes 0
+
+# First, build up a list of all the ids
+# Start with any on command line
+set allids $argv
+
+# Cycle through list file names
+foreach listname $listfile {
+    # Cycle through the idlist
+    set listf [open $listname "r"]
+    while {![eof $listf]} {
+	# Get the next id
+	set id [string trim [gets $listf]]
+        # Is this a valid ID line?
+	if {$id != "" && [string range $id 0 0] != "#"} {
+	    lappend allids $id
+	}
+    }
+    close $listf
+}
+
+set ctmhandle ""
+if {$ctmfile != ""} {
+    set ctmhandle [CTMOpen $ctmfile]
+}
+
+set moreids $allids
+
+while {$moreids != "" || $ctmhandle != ""} {
+
+    set id [car $moreids]
+    set moreids [cdr $moreids]
+
+    if {$id == "" && $ctmhandle != ""} {
+	set id "${ctmfile}.$sentno"
+    }
+
+    # Got ID; Process it, if in range
+    if {$sentno >= $sent_start && !$alldone} {
+
+	# If ranges are expected, extract them
+	if {$rangerate > 0.0} {
+	    if {[llength $id] != 3} {
+		Error "expecting range info, but '$id' has none"
+	    }
+	    lassign $id id rstt rend
+	    set rangestart [expr ($rstt+$rngstartoffset)/(0.0+$rangerate)]
+	    set rangedur   [expr ($rend+$rngendoffset \
+		                         -$rstt-$rngstartoffset) \
+		                                 /(0.0+$rangerate)]
+	}
+
+	# Build the transcription label filename from path or command
+	if {$phnfilecmd != ""} {
+	    if {![regsub -all "%u" $phnfilecmd $id fullcmd]} {
+		set fullcmd "$phnfilecmd$id"
+	    }
+	    set labfile [eval "exec $fullcmd"]
+	} else {
+	    if {$ctmhandle != ""} {
+		set labfile $id
+	    } else {
+		set labfile "$phndirectory/${id}$phnextension"
+	    }
+	}
+
+	# Check that we got a good filename
+	if {$ctmhandle == "" \
+		&& ($labfile == "" || ![file exists $labfile])} {
+	    # the label file is inaccessible. Stop unless -nocomplain
+	    if {$nocomplain} {
+		Warn "id $id gave labfile '$labfile' which can't be read"
+	    } else {
+		Error "id $id gave labfile '$labfile' which can't be read"
+	    }
+	} else {
+	    # We have a readable label file, so process it.
+	    
+	    # Read the labels file into {start dur tok} format
+	    if {$ctmhandle != ""} {
+		# CTM handle takes precedence over other labels
+		set labdurs [CTMReadLabels $ctmhandle]
+		# Check for EOF
+		if {$labdurs == ""} {
+		    CTMClose $ctmhandle
+		    set ctmhandle ""
+		}
+	    } elseif {$labeltype == "xlabel"} {
+		set labdurs [ReadLabelFileXL $labfile]
+	    } elseif {$labeltype == "timit"} {
+		set labdurs [ReadLabelFileTI $labfile $label_framerate]
+	    } elseif {$labeltype == "noway"} {
+		set labdurs [ReadLabelFileNW $labfile]
+	    } elseif {$labeltype == "noway2"} {
+		set labdurs [ReadLabelFileNW2 $labfile]
+	    } elseif {$labeltype == "ctm"} {
+		set labdurs [ReadLabelFileCTM $labfile]
+	    } else {
+		Error "Unknown labelfile type '$labeltype' not xlabel/timit/noway/noway2/ctm"
+	    }
+
+	    if {[llength $labdurs] == 0} {
+		Warn "label set '$id' ($labfile) is empty - skipping"
+	    } else {
+		# See if we can get a duration, either from
+		# the range information, or by looking at the wavfile, 
+		# or from a deslen file
+		set duration 0.0
+		if {$rangerate > 0.0} {
+		    # This is a ranged file
+		    set duration $rangedur
+		} elseif {$wavdirectory != "" || $wavfilecmd != ""} {
+		    # We are instructed to get duration from wav file
+		    if {$wavfilecmd != ""} {
+			if {![regsub -all "%u" $wavfilecmd $id fullcmd]} {
+			    set fullcmd "$wavfilecmd$id"
+			}
+			set wavfile [eval "exec $fullcmd"]
+		    } else {
+			set wavfile "$wavdirectory/${id}$wavextension"
+		    }
+		    if {![file readable $wavfile]} {
+			Error "wavfile $wavfile is not readable"
+		    }
+		    set wavsamples [expr [WavSamplesSafe $wavfile]]
+		    set duration [expr $wavsamples / $samplerate]
+		} elseif {[llength $deslens] > 0} {
+		    set duration [expr [lindex $deslens $sentno]*$steptime/1000 + ($windowtime-$steptime)/1000]
+		}
+
+		# Now we have the 'true' file duration, maybe!
+
+		# The core function, phnfile2labels, will 'sample' 
+		# the intervals defined in the transcription file 
+		# and return the prevailing label at each sample point. 
+		# Effects of ranging, padding and window length 
+		# may influence exactly where we want to sample.
+		# Set the start time offset to include all these
+		set startoffset [expr $midwinoffset \
+					  -($zeropad/1000.0) \
+					  +$rangestart \
+					  -($offsettime/1000.0)]
+		# Set the endoffset to account for padding
+		set endoffset [expr -$midwinoffset+($zeropad/1000.0) \
+					    -($offsettime/1000.0)]
+
+		# Subroutine to actually convert the labdurs list to 
+		# a sequence of indexes
+		set labels [labdurs2ixseq $labdurs $frametime \
+					  $startoffset $endoffset "duration"]
+		# "duration" is passed by reference & may be updated
+
+		# Write resulting frames out to tmpfile
+		set frameno 0
+		foreach l $labels {
+		    puts $tmpf "$sentno $frameno $l"
+		    incr frameno
+		}
+
+		# Write the duration to an output file (if requested).  
+		# This value DOESN'T include any zeropadding or prepended/
+		# postpended frames, but it DOES reflect the length read from 
+		# a wav file (if any), otherwise just the max of the label file.
+		puts $durf "$id $duration"
+
+		if {!($verbose == "silent" || $verbose == "quiet") } {
+		    Warn "did $labfile ($frameno frames)"
+		}
+		incr totsents
+		incr totframes $frameno
+		incr sentno
+		if {$sent_count > 0 && $sentno-$sent_start >= $sent_count} {
+		    set alldone 1
+		    break
+		}
+	    }
+	}
+    }
+}
+
+
+
+# Finish writing label info
+close $tmpf
+
+# Finish writing utid/duration info
+close $durf
+
+## Don't do any of this now we write straight to a pfile_create pipe
+# Now have the ascii tmp file - write it into a pfile
+# Define the header
+#set pf [open $pfile "w"]
+#puts $pf "-num_sentences $totsents"
+#puts $pf "-num_frames $totframes"
+#puts $pf "-num_features 0"
+#puts $pf "-num_labels 1"
+#puts $pf "-first_feature_column 2"
+#puts $pf "-first_label_column 2"
+#puts $pf "-format 3d"
+#close $pf
+## Now patch in the data
+#exec pfile $pfile data -size $totframes -format 3d -ascii $tmpfile
+
+#exec pfile_create -o $pfile -f 0 -l 1 -i $tmpfile
+#
+### Remove the tmp file
+#exec rm $tmpfile
+##puts "tmpfile = $tmpfile"
+
+if {!($verbose == "silent" || $verbose == "quiet") } {
+    Warn "$totsents label files ($totframes frames) put in  $pfile"
+}
+exit 0
+}

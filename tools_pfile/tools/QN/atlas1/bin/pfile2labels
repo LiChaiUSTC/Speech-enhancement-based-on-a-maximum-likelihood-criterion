@@ -1,0 +1,382 @@
+#!/usr/local/bin/tclsh8
+# -*- Tcl -*-
+#
+# pfile2labels (formerly pfile2xlabel.tcl)
+#
+# Convert labels in a pfile to an xlabel file
+#
+# 1998may25 dpwe@icsi.berkeley.edu
+# $Header: /u/drspeech/src/labels2pfile/pfile2labels.in,v 1.3 2000/05/11 17:35:49 dpwe Exp dpwe $
+
+# Load libraries
+#lappend auto_path [glob ~dpwe/share/lib]
+lappend auto_path /home/jiapan/tools/QN/atlas1/lib
+package require Dpwe_Utilfns
+
+# More packages specific to this task
+package require Dpwe_Labelfilefns
+package require Dpwe_Phonesetfns
+
+# Make sure Phonesetfns is really loaded, to set up global vars ($phonsetFile)
+eval $auto_index(ReadPhoneset)
+set phoneset $phonesetFile
+
+# Clean up the reported name
+set argv0 [file tail $argv0]
+
+# Specify the args
+set listfile ""
+set pfile ""
+# steptime is the duration (in ms) of each frame
+set steptime "10.0"
+set windowtime "25.0"
+set offsettime "0.0"
+
+# Which sentences to do
+set sent_start "0"
+set sent_count "0"
+set skipfirst  "0"
+
+set labeltype "timit"
+
+set label_framerate 1000.0
+
+set phnfilecmd ""
+set phndirectory "."
+set phnextension ".phn"
+
+set wavfilecmd ""
+set wavdirectory ""
+set wavextension ".wav"
+
+set makedirs 0
+
+# For converting wav files to durations
+set samplerate 8000.0
+# For ranged lists
+set rangerate 0
+set rngstartoffset 0.0
+set rngendoffset 0.0
+
+# For CTM output (all in one file)
+set ctmfile ""
+
+# Format of input labels file (passed to labcat)
+set ipformat "pfile"
+
+set verbose "normal"
+
+GetICSIargs "listfile pfile steptime windowtime offsettime sent_start sent_count skipfirst wavdirectory wavextension wavfilecmd phndirectory phnextension phnfilecmd samplerate phoneset labeltype makedirs label_framerate ctmfile rangerate rngstartoffset rngendoffset ipformat verbose"
+
+if {$pfile == ""} {
+    puts stderr "Usage: $argv0 listfile=<idlist> pfile=<input.pfile> phndirectory=<outdir>"
+    puts stderr "  reads the sentences in the pfile whose IDs are taken from"
+    puts stderr "  the lines of the list file, then writes label files"
+    puts stderr "  for each utterence into the output directory."
+    puts stderr "  Specify phonset= to have numeric, not phoneset, labels."
+    puts stderr ""
+    puts stderr "  Specify ctmfile=<name> to write output to a single CTM file."
+    puts stderr ""
+    puts stderr "  Default phoneset=$phoneset"
+    puts stderr "  Default steptime=$steptime"
+    puts stderr "  Default windowtime=$windowtime"
+    puts stderr "  Default offsettime=$offsettime (subtracted from each boundary)"
+    puts stderr "  Default label_framerate=$label_framerate Hz (for timitlabs)"
+    puts stderr "  Default phndirectory=$phndirectory"
+    puts stderr "  Default sent_start=$sent_start"
+    puts stderr "  Default sent_count=$sent_count"
+    puts stderr "  Default skipfirst=$skipfirst"
+    puts stderr "  Default labeltype=$labeltype"
+    puts stderr "  Default phnextension=$phnextension"
+    puts stderr "  .. or specify phnfilecmd"
+    puts stderr "  Default ipformat=$ipformat"
+    puts stderr "  Default verbose=$verbose (normal or quiet)"
+    puts stderr ""
+    puts stderr "  Specify wavdirectory (and wavextension=$wavextension)"
+    puts stderr "   to optionally force the last label in each file to "
+    puts stderr "   align with the end of the wav file (if found) .. or "
+    puts stderr "   specify wavfilecmd"
+    puts stderr ""
+    puts stderr "  makedirs=1 to make directories for output as needed."
+    puts stderr ""
+    puts stderr "  Ranged lists may be used, although I'm not sure what to do"
+    puts stderr "  with the range times so defined; for now, they are ignored."
+    puts stderr "    Default rangerate=$rangerate"
+    puts stderr "    Default rngstartoffset=$rngstartoffset"
+    puts stderr "    Default rngendoffset=$rngendoffset"
+    exit 0
+}
+
+# How many samples in each of our frames?
+set framesamples [expr round($steptime/1000.0*$samplerate)]
+
+# Skew due to windowtime?
+set skewtime [expr ($windowtime-$steptime)/2000.0]
+# convert offsettime to ms
+set offsettime [expr $offsettime/1000.0]
+
+# Load the default phoneset
+set have_phoneset 0
+if {$phoneset != ""} {
+    ReadPhoneset $phoneset
+    set have_phoneset 1
+}
+
+# Figure the pfile size
+#set pfinfo [exec pfile $pfile]
+#if {![regexp {first_label_column *= *([0-9]+)} $pfinfo all labelcolumn]} {
+#    Error "couldn't find first_label_column in $pfinfo"
+#}
+#if {![regexp {num_frames *= *([0-9]+)} $pfinfo all numframes]} {
+#    Error "couldn't find num_frames in $pfinfo"
+#}
+#
+## Create a stream to read the pfile
+#set pfpipe [open "| pfile $pfile data -format d[expr $labelcolumn-1].d -size $numframes" "r"]
+#
+
+#set pfinfo [exec pfile_info $pfile]
+set pfinfo [exec labcat -ipf $ipformat -q $pfile]
+if {![regexp {([0-9]+) frames} $pfinfo all numframes]} {
+    Error "couldn't find frames count in pfile_info output '$pfinfo'"
+}
+
+#set pfpipe [open "| pfile_print -i $pfile -fr nil -lr 0 -q" "r"]
+set pfpipe [open "| labcat -opf ascii -ipf $ipformat $pfile" "r"]
+
+# If we're writing a CTM file, open it now
+if {$ctmfile != ""} {
+    if {$ctmfile == "-"} {
+	set ctmfid stdout
+    } else {
+	set ctmfid [Open $ctmfile "w"]
+    }
+    if {$ctmfid == ""} {
+	Error "Couldn't create output ctmfile '$ctmfile'"
+    }
+}
+
+set _ctm_seg_count 0
+proc CTMWriteSeg {file labels} {
+    # Write one segment's worth of CTM labels to a file
+    # Input data is list of {start dur tok} triples
+    global _ctm_seg_count
+    incr _ctm_seg_count
+    set nlabels 0
+    foreach triple $labels {
+	lassign $triple start dur tok
+	# Unfortunately, in tclsh8, format %.3f 0.xx75 sometimes rounds 
+	# to 0.xx7 and sometimes to 0.xx8.  So skew to make sure it's 
+	# always 0.xx8
+	puts $file "$_ctm_seg_count A [format %.3f [expr $start+0.0001]] [format %.3f [expr $dur+0.0001]] $tok"
+	incr nlabels
+    }
+    return $_ctm_seg_count
+}
+
+# Cycle through the idlist (but only required if not writing CTM
+if {$listfile != ""} {
+    set listf [Open "$listfile" "r"]
+    if {$listf == ""} {
+	Error "Couldn't open list file '$listfile' for read"
+    }
+} else {
+    if {$ctmfile == ""} {
+	Error "No list file specified!  (Needed to get output utt IDs)"
+    }
+    set listf ""
+}
+
+# Start off with no past data
+set currentsentid -1
+set currentlabel ""
+
+# Progress variables
+set sentno 0
+set written 0
+set alldone 0
+
+proc CreateDirectory {dirname} {
+    # create a directory, and its parents if necessary
+    set parent [file dirname $dirname]
+    if {![file exists $parent]} {
+	# Recurse to build parents first
+	CreateDirectory $parent
+    }
+    file mkdir $dirname
+}
+
+set totalframes 0
+
+# First time doesn't have framecount at zero - 
+#   have to back up one to precompensate for the assumed first 
+#   state in all the subsequent loops (the state that was read 
+#   at the end of the previous phrase showing that the sentence 
+#   number had changed).
+set framecount 0
+
+while {!$alldone && !($listf != "" && [eof $listf]) && ![eof $pfpipe]} {
+    # Get the next id
+    if {$listf != ""} {
+	set id [string trim [gets $listf]]
+    } else {
+	# No list file - must be writing to a CTM ??
+	set id "input.$sentno"
+    }
+    if {$id != "" && [string range $id 0 0] != "#"} {
+	# Have a valid ID - start reading from the pfile pipe
+	# But first: If the id has three elements, assume we're 
+	# reading one of brian's 'ranged' lists, and extract 
+	# the extra ranged offset
+	if {[llength $id] == 3} {
+	    if {$rangerate == 0} {
+		Error "Ranges seen in idfile line '$id' but rangerate=0"
+	    }
+	    lassign $id id rstart rend
+	    set sampleoffset [expr round(($rstart+$rngstartoffset)/($samplerate/$rangerate))]
+	    set sampledur [expr round((($rend+$rngendoffset)-($rstart+$rngstartoffset))/($samplerate/$rangerate))]
+	    #set xframes [expr round($sampleoffset/$framesamples)]
+	    # Ignore range info for now - don't know what to do with it.
+	    set xframes 0
+	} else {
+	    set xframes 0
+	}
+	set labels {}
+	set starttime 0.0
+	set eoseg 0
+	while {!$eoseg} {
+	    set pfout [gets $pfpipe]
+	    if {[eof $pfpipe]} {
+		set eoseg 1
+	    }
+	    if {$pfout != ""} {
+		set sentid [lindex $pfout 0]
+		set label  [lindex $pfout 2]  ;# was 1 when using pfile
+		if {$sentid != $currentsentid} {
+		    if {$currentsentid != -1} {
+			set eoseg 1
+		    }
+		    set currentsentid $sentid
+		}
+	    }
+	    # Increment framecount even on 'blank line' so that 
+	    # even at EOF (eoseg=1), lastframecount takes the right value
+	    incr framecount
+	    if {$eoseg || $label != $currentlabel} {
+		# Append the new label if it changes, or if the sentence
+		# changes, or at eof
+		if {$currentlabel != ""} {
+		    # use $framecount-1 because this framecount is 
+		    # the *following* label
+		    # EXCEPT when eoseg=1, in which case framecount has 
+		    # NOT been incremented.
+		    set lastframecount [expr $framecount - 1]
+		    if {$lastframecount > ($skipfirst-$xframes)} {
+			set time [expr ($lastframecount>0?($skewtime-$offsettime):0) + \
+				      ($lastframecount-($skipfirst-$xframes))\
+				        *($steptime/1000.0)]
+			if {$have_phoneset} {
+			    set labelname [PhoneName $currentlabel]
+			} else {
+			    set labelname $currentlabel
+			}
+			if {$eoseg} {
+			    # Possibly extend the time of the 
+			    # last label to the actual end of the file
+			    if {($wavdirectory != "" || $wavfilecmd != "")} {
+				if {$wavfilecmd != ""} {
+				    if {![regsub "%u" $wavfilecmd $id fullcmd]} {
+					set fullcmd "$wavfilecmd$id"
+				    }
+				    set wavfile [eval "exec $fullcmd"]
+				} else {
+				    set wavfile "$wavdirectory/${id}$wavextension"
+				}
+				if {[file exist $wavfile]} {
+				    set lastframecount [expr \
+					       ([WavSamplesQuick $wavfile]\
+					        - $framesamples)/$framesamples]
+				    # .. the -1 is for the extra frame needed
+				    # for the 2 x $steptime window
+				    set time [expr $lastframecount \
+					                  * ($steptime/1000.0)]
+				}
+			    } else {
+				# Add on the 2nd half-window-excess skew, and 
+				# negate the offsettime subtracted before
+				set time [expr $time + $skewtime + $offsettime]
+			    }
+			}
+			set dur [expr $time-$starttime]
+			lappend labels [list [format %.6f $starttime] \
+				[format %.6f $dur] $labelname]
+			set starttime $time
+		    }
+		}
+		set currentlabel $label
+	    }
+	}
+	# OK, save the label file - if this is one to write
+	if {$sentno >= $sent_start} {
+	    if {$ctmfile != ""} {
+		# Writing CTMs takes precedence
+		set ctmsegno [CTMWriteSeg $ctmfid $labels]
+		set phnfile "$ctmfile.$ctmsegno"
+	    } else {
+		if {$phnfilecmd != ""} {
+		    if {![regsub "%u" $phnfilecmd $id fullcmd]} {
+			set fullcmd "$phnfilecmd$id"
+		    }
+		    set phnfile [eval "exec $fullcmd"]
+		} else {
+		    set phnfile "$phndirectory/${id}$phnextension"
+		}
+		if {$makedirs} {
+		    CreateDirectory [file dirname $phnfile]
+		}
+		if {$labeltype == "xlabel"} {
+		    set rc [WriteLabelFileXL $phnfile $labels]
+		} elseif {$labeltype == "timit"} {
+		    set rc [WriteLabelFileTI $phnfile $labels $label_framerate]
+		} else {
+		    Error "Unknown labelfile type '$labeltype' not 'xlabel' or 'timit'"
+		}
+		if {$rc <= 0} {
+		    Error "Unable to write phnfile $phnfile"
+		}
+	    }
+	    if {$verbose != "quiet"} {
+		Warn "wrote $phnfile ($lastframecount frames)"
+	    }
+	    incr written
+	    incr totalframes $lastframecount
+	}
+	set framecount 1
+    }
+    incr sentno
+    if {$sent_count > 0 && $sentno-$sent_start >= $sent_count} {
+	set alldone 1
+    }
+}
+
+if {$ctmfile != ""} {
+    if {$ctmfile != "-"} {
+	close $ctmfid
+    }
+    set dest "to CTM file '$ctmfile'"
+} else {
+    if {$phnfilecmd != ""} {
+	set dest "with \"$phnfilecmd\""
+    } else {
+	set dest "to $phndirectory"
+    }
+}
+
+if {$listf != ""} {
+    close $listf
+}
+# This generates an error because we're killing the pfile process
+catch {close $pfpipe}
+
+Warn "$written label files ($totalframes frames) written $dest"
+exit 0

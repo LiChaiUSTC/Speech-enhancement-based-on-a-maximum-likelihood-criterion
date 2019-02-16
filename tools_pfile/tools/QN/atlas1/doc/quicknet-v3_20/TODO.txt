@@ -1,0 +1,127 @@
+$Header: /u/drspeech/repos/quicknet2/TODO,v 1.122 2007/06/06 02:28:50 davidj Exp $
+
+
+Next release
+------------
+ - add warning for NaNs
+ - fix format in man pages for arguments with multi-paragraph descriptions
+ - matlab format feature streams
+ - make qndo work for SunUSIII
+ - get qn_pp_tanh_vf_vf working accurately
+ - RMS error calculation
+ - remove malloc/free/strdup in QN_AsciiStreams.cc
+ - add version number in man pages
+ - matlab load and save matrix routines
+ - use libtool (and -R) for static linking and building of libraries
+ - inconsistencies with section types between MLP and weight file classes
+ - --with- configure command line options for atlas etc.
+ - remove QN_open_ftrfile/QN_close_ftrfiles and move functionality
+   to QN_open
+ - add global flag for switching on/off comma-separated file names
+ - fix testsuite so it adds "-lgcc" to link if possible
+ - add comma-separated label files
+ - fix warnings as detailed in olivier1.patch
+ - testsuite programs should have dependency on library
+ - threads
+    - alias some intermediate result vectors?
+    - alias some intermediate result vectors in QN_MLP_BunchFl3?
+    - randomize testing of different thread counts
+    - copy of weights for each thread for forward pass?
+ - add gdb config file to dist
+ - try and make faster
+    - faster copy_vf_mf (memcpy?)
+    - faster sumcol_mf_vf
+ 
+Next big release
+----------------
+ - padding at beginning and end of segment per feacat
+ - function for arbitrarily combining label streams
+ - SRI feature files
+ - sub-epochs
+ - multiple code books for unary_input
+ - fix logging for single-utterance files so they are per-utterance not
+   per-epoch 
+ - sort out QN_InFtrStream_List::set_pos potentially needing lots of
+   space to do a seek 
+
+ - qnstrn config file?
+ - bring back ChangeLogs?
+ - fix or destroy QN3Config.sh
+ - include CFLAGS, compiler version, in log file
+ - testing
+    o merge in testsuite2?
+    o investigate "regress"
+ - blas on apple
+    -faltivec -framework vecLib 
+   or
+    -falitvec -framework Accelerate
+ - fix QN_utils.cc:build_ftrstream so it frees old ftr_str objects
+ - check shared stuff in testsuite
+ - move testdata scripts to subdir
+ - test qncopy?  Add to testdata? install?
+
+One day
+-------
+ - use templates for horrible macro stuff?
+ - updated feaclac, feacat etc...
+
+Dan's old TODO (and DONE!)
+--------------------------
+
+1999mar07 dpwe@icsi.berkeley.edu
+QuickNet overhaul : done & todo
+v - Integrate with changes in SPRACHcore/quicknet
+v    - configuration &c for clean compile within SPRACHcore
+v    - qncopy program
+v - From /u/fosler/quicknet:
+v    - bunchmode for single-spert training (some routines into fxlib)
+v    - "smoothdecay" learnrate_schedule
+v    - per-layer initialization of weight/bias ranges
+v - ILab run-length encoded binary label file format (incl. man page)
+v - Ascii In/Out FtrLabStream to support pfile_print, pfile_build-style
+    functionality in feacat etc.
+v - Integrate with multispert code
+     - host={cpu|spert} num_slaves={0..4}
+  - QN_Range from feacat & range specs for train_sent etc.
+  - pasting together of pfiles both side-to-side and end-to-end
+  - interface support for deltas, ranges, pasting etc.
+
+Dave's 1997jan todo list:
+-------------------------
+
+ - Testsuite for QN_OutFtrStream_Rapact.
+ - Sort out error messages when asking for a sentence number that isn't 
+   in the feature file
+ - Sort out error messages when incorrect number of input to the net
+ - Support for g++filt in Makefile
+ - Scan to check all sentences are large enough for window size.
+ - Do regression suite
+ - Write distribution test scripts
+ - Option to back propagate errors out from input layer
+ - Optimize case when learning_rate = 0
+ - Fix weight file stuff
+ - Renormalization of LNA files on input
+ - Sort out weight file loading and saving.
+ - Enhance "Starting chunk" messages - MCUPs etc - and add to CV
+ - Write new class for merging sentences to form bigger units 
+ - Fix so that we use big bunches in CV by not fragmenting on a sentence
+   basis (QN-trn.cc#291)
+ - Test suite for JoinFtrs.
+ - swbnorm
+ - fixed hacked unary_enumerate implementation
+ - remove swb_ps_vrfy from Makefile
+ - Spot un-word-aligned pre files
+ - Windowing with no lost frames
+ - Give some indication of extent when input features saturate.
+ - Recursively clean lower directories with "make clean"
+ - Binary weight files
+ - Support strut feature files
+ - Support strut weight files
+ - Support strut activation files
+ - Online output of LNA files
+ - General ASCII feature file class
+ - Test pre file handling - swbforward
+ - Handle ftr1_file==hardtarget_file better
+ - Fix hack around sys/stat.h include needed for SPERT.
+ - Merge QN_HardSentTrain and QN_SoftSentTrain.
+ - fix distclean

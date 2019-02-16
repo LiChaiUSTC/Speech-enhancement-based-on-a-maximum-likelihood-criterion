@@ -1,0 +1,217 @@
+#!/bin/sh -e
+#
+# msgcalc
+#
+# Script to calculate msg pfiles
+# as if we were feacalc
+#
+# 2000-08-03 dpwe@icsi.berkeley.edu
+# $Header: /u/drspeech/src/modspec/RCS/msgcalc.in,v 1.8 2006/07/05 19:11:56 gelbart Exp $
+
+# Save the input command line
+ARGVIN=$*
+
+# Root of all modspec definitions
+: ${MODSPEC_DIR:=/home/dujun/TANDEM/tools/QN/modspec/modspec}
+
+# Extend path to find binaries (modspec, wavs2onlaudio, feacat)
+PATH_BUILD=`echo " " | sed -e "s@[: ]\{1,\}@:@g"`
+PATH_INSTALL=/home/dujun/TANDEM/tools/QN/atlas1/bin:/home/dujun/TANDEM/tools/QN/atlas1/bin
+PATH=${PATH_INSTALL}:$PATH
+
+# Default parameters
+
+MSG=1
+WINTIME=32
+STEPTIME=16
+ZEROPAD=0
+RNGRATE=
+RNGSTT=0
+RNGEND=0
+UTTSTT=0
+UTTCOUNT=-1
+IPFMT=
+LISTS=
+SRATE=8000
+NRATE=
+FILECMD=
+WAVDIR=
+WAVEXT=
+OPFILE=-
+OPFMT=pfile
+VERBOSE=
+
+IPFILES=
+
+# Parse the cmd line args
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+    -h*) echo "usage: $0 [opts] [ipfiles]"
+	 echo "  where opts can be:"
+	 echo "  -msg N 	msg 1 or msg 3? ($MSG)"
+	 echo "  -win?dowt ww	window size in ms ($WINTIME)"
+	 echo "  -step?t ss	step time in ms ($STEPTIME)"
+	 echo "  -zero?pad zz	add this many ms of 0 at both ends ($ZEROPAD)"
+	 echo "  -range?rate r	time base for range files ($RNGRATE)"
+	 echo "  -rngs?tarto o	offset added to range start in secs ($RNGSTT)"
+	 echo "  -rnge?ndo o	offset added to range end in secs ($RNGEND)"
+	 echo "  -sent_s?tt s	skip this many utterances at start ($UTTSTT)"
+	 echo "  -sent_c?ount e	do only this many utts total ($UTTCOUNT)"
+	 echo "  -ip?format f	SNDF format of input sound files ($IPFMT)"
+	 echo "  -list?s	filenames are lists of IDs, not files"
+	 echo "  -sam?plerate r	sample rate of input files ($SRATE)"
+	 echo "  -nyq?uist n	optional input bandlimiting frq ($NRATE)"
+	 echo "  -file?cmd cmd	command to map IDs to filenames ($FILECMD)"
+	 echo "  -wavd?ir dir	prefix for utids ($WAVDIR)"
+	 echo "  -wave?xt ext	suffix for utids ($WAVEXT)"
+	 echo "  -o?utput fn	output file name ($OPFILE)"
+	 echo "  -op?format f	format of output files ($OPFMT)"
+	 echo "  -v?erbose	detailed progress messages"
+	 echo "  -h?elp		print this message"
+	 exit 1
+	 ;;
+     -msg*)	shift; MSG=$1 ;;
+     -win*)	shift; WINTIME=$1 ;;
+     -step*)	shift; STEPTIME=$1 ;;
+     -range*)	shift; RNGRATE=$1 ;;
+     -rngs*)	shift; RNGSTT=$1 ;;
+     -rnge*)	shift; RNGEND=$1 ;;
+     -sent_s*)	shift; UTTSTT=$1 ;;
+     -sent_c*)	shift; UTTCOUNT=$1 ;;
+     -ip*)	shift; IPFMT=$1 ;;
+     -list*)	LISTS=1 ;;
+     -sam*)	shift; SRATE=$1 ;;
+     -nyq*)	shift; NRATE=$1 ;;
+     -file*)	shift; FILECMD=$1 ;;
+     -wavd*)	shift; WAVDIR=$1 ;;
+     -wave*)	shift; WAVEXT=$1 ;;
+     -o*)	shift; OPFILE=$1 ;;
+     -v*)	VERBOSE=1 ;;
+     -*)        echo "$0: Unrecognized option '$1'"; $0 -help;;
+     *)		IPFILES="$IPFILES $1" ;;
+     esac
+
+     shift
+done
+
+# No ipfiles gives usage
+if [ -z "$IPFILES" ]; then
+    $0 -help
+fi
+
+# Verbose turns on echo
+if [ $VERBOSE ]; then
+    set -x
+fi
+
+# Record what we are about to execute in history
+HISTFILE=./.msgcalc_hist
+echo -n $0 $ARGVIN "@ " >> $HISTFILE
+date >> $HISTFILE
+
+if [ "$MSG" = "3" -a "$STEPTIME" = "10" ]; then
+    # msg3 (0-8 Hz and 8-16 Hz) for 10ms steptime
+    FILT_DIR=$MODSPEC_DIR/10ms/msg3
+    FILT_A=$FILT_DIR/lo0_hi8_n21_dn5.sos
+    FILT_B=$FILT_DIR/lo8_hi16_n21.sos
+    TAU1=160
+    TAU2_A=320
+    TAU2_B=320
+elif [ "$MSG" = "1" -a "$STEPTIME" = "16" ]; then
+    # msg1 (0-16 Hz and 2-16 Hz) for 16ms steptime
+    FILT_DIR=$MODSPEC_DIR/16ms/msg1
+    FILT_A=$FILT_DIR/lo0_hi16.sos
+    FILT_B=$FILT_DIR/lo2_hi16.sos
+    TAU1=160
+    TAU2_A=320
+    TAU2_B=640
+else 
+     echo "Unknown variant: msg$MSG at step=$STEPTIME"
+     exit 1
+fi
+
+# Deal with possibly nonempty NRATE
+if [ $NRATE ]; then
+   NFRAC=`calc "2*$NRATE/$SRATE" | sed -e "s/[ 	]*//g"`
+else
+   NRATE=`calc $SRATE/2 | sed -e "s/[ 	]*//g"`
+   NFRAC=1
+fi
+
+
+if [ $SRATE = 8000 ]; then
+  NFFT=256
+elif [ $SRATE = 16000 ]; then
+  NFFT=512
+else
+  echo "Can't deal with sample=$SRATE, not 8000 or 16000"
+  exit 1
+fi
+
+if [ $NRATE = 4000 ]; then
+  NFTRS=14
+elif [ $NRATE = 8000 ]; then
+  NFTRS=18
+else
+  echo "Can't deal with nyquist rate (sr/2) =$NRATE, not 4000 or 8000"
+  exit 1
+fi
+
+# We have to run the sed on calc's output, both to strip the 
+# leading WS, AND to hide the zero return code from calc (!?)
+NWIN=`calc "int($WINTIME*$SRATE/1000)"  | sed -e "s/[ 	]*//g"`
+NSTEP=`calc "int($STEPTIME*$SRATE/1000)"  | sed -e "s/[ 	]*//g"`
+
+# Built the input filename list
+WAVLIST=/tmp/msg1calc-list.$$
+rm -f $WAVLIST
+touch $WAVLIST
+if [ -z "$LISTS" ]; then
+    # command line elements are individual file names / utids
+    for ID in $IPFILES; do
+        echo $ID >> $WAVLIST
+    done
+else 
+    # command line elements are list files
+    for ID in $IPFILES; do
+        cat $ID >> $WAVLIST
+    done
+fi
+
+# Pipe for splitting input
+IPIPE=/tmp/msg1calc-i.$$
+mknod $IPIPE p
+
+# Pipe for rejoining outputs
+OPIPE=/tmp/msg1calc-o.$$
+mknod $OPIPE p
+
+# OK, run the calc
+
+wavs2onlaudio sf=$SRATE infilename=$WAVLIST ipsffmt=$IPFMT \
+      utt_start=$UTTSTT utt_count=$UTTCOUNT zeropad=$ZEROPAD \
+      rangerate=$RNGRATE rngstartoffset=$RNGSTT rngendoffset=$RNGEND \
+      wavdir=$WAVDIR wavext=$WAVEXT filecmd="$FILECMD" \
+  | tee $IPIPE \
+  | modspec \
+      -sf $SRATE -nfft $NFFT -nwin $NWIN -nstep $NSTEP -fnyq $NFRAC \
+      -efilt $FILT_A \
+      -agctau1 $TAU1 -agctau2 $TAU2_A \
+  > $OPIPE \
+  & modspec \
+      -sf $SRATE -nfft $NFFT -nwin $NWIN -nstep $NSTEP -fnyq $NFRAC \
+      -efilt $FILT_B \
+      -agctau1 $TAU1 -agctau2 $TAU2_B \
+    < $IPIPE \
+  | feacat -width $NFTRS -ip onl -op $OPFMT -out $OPFILE $OPIPE//-
+
+# $TAU2_B, above, was previously $TAU2_A, which was apparently a bug.
+# Fixed July 5 2006.  Further comments on this are in the RCS revision
+# history for msgcalc.in.
+
+rm $IPIPE
+rm $OPIPE
+rm $WAVLIST
+
+exit 0
