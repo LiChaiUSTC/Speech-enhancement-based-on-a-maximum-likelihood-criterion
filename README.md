@@ -160,10 +160,10 @@ Select one well-trained model and change the suffix 'wts' to 'mat'. Then execute
   <table width="692" border="1">
     <tr>
       <td width="250">&nbsp;</td>
-      <td width="150"><div align="center">Clean</div></td>
-      <td width="150"><div align="center">Noisy</div></td>
-      <td width="150"><div align="center">MMSE</div></td>
-      <td width="150"><div align="center">ML (β=0.9)</div></td>
+      <td width="160"><div align="center">Clean</div></td>
+      <td width="160"><div align="center">Noisy</div></td>
+      <td width="160"><div align="center">MMSE</div></td>
+      <td width="160"><div align="center">ML (β=0.9)</div></td>
     </tr>
     <tr>
       <td>JetCockpit2, SNR5 </td>
