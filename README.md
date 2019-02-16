@@ -82,7 +82,7 @@ The following codes are from the lines 408 to 423 of "BP_GPU.cu", which is to ca
     where β=2 corresponds to the MMSE criterion and β=1 corresponds to the LAD criterion.  
     Then the backpropagation procedure with a SGD method is used to update DNN parameters **W** in the minibatch mode of M sample frames (In this paper, M=128).
     
-    The function "DevSubClean2" achieves the calculation of the gradient of ![公式](https://latex.codecogs.com/gif.latex?E(\boldsymbol{W})) with respect to the output ![公式](https://latex.codecogs.com/gif.latex?\hat{x}_{n,d}(y_{n-\tau}^{n&plus;\tau},\boldsymbol{W})) as follows:
+    The function "DevSubClean2" achieves the calculation of the gradient of ![公式](https://latex.codecogs.com/gif.latex?E(\boldsymbol{W})) with respect to the output ![公式](https://latex.codecogs.com/gif.latex?\hat{x}_{m,d}(y_{m-\tau}^{m&plus;\tau},\boldsymbol{W})) as follows:
 
     ![公式](https://latex.codecogs.com/gif.latex?\frac{\partial&space;E(\boldsymbol{W})}{\partial&space;\hat{x}_{m,d}(y_{m-\tau}^{m&plus;\tau},\boldsymbol{W})}=\beta\mathop{\rm&space;sgn}\left(\hat{x}_{m,d}(y_{m-\tau}^{m&plus;\tau},\boldsymbol{W})-x_{m,d}\right)|x_{m,d}-\hat{x}_{m,d}(y_{m-\tau}^{m&plus;\tau},\boldsymbol{W})|^{\beta-1}.)
 
