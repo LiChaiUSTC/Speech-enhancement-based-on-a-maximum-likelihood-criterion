@@ -163,7 +163,7 @@ Select one well-trained model and change the suffix 'wts' to 'mat'. Then execute
       <td width="100"><div align="center">Clean</div></td>
       <td width="100"><div align="center">Noisy</div></td>
       <td width="100"><div align="center">MMSE</div></td>
-      <td width="100"><div align="center">ML</div></td>
+      <td width="100"><div align="center">ML (β=0.9)</div></td>
     </tr>
     <tr>
       <td>JetCockpit2, SNR5 </td>
@@ -203,7 +203,7 @@ Select one well-trained model and change the suffix 'wts' to 'mat'. Then execute
     <tr>
       <td>Military Vehicle, SNR0</td>
       <td><div align="center"><a href="Enh_demos/MilitaryVehicle_SNR0_CLEAN_TEST_DR2_FPAS0_SX404.WAV">wav</a></div></td>
-      <td><div align="center"><a href="Enh_demos/MilitaryVehicle_SNR0_NOISY_TEST_DR2_FPAS0_SX404.wav">wav</a></div></td
+      <td><div align="center"><a href="Enh_demos/MilitaryVehicle_SNR0_NOISY_TEST_DR2_FPAS0_SX404.wav">wav</a></div></td>
       <td><div align="center"><a href="Enh_demos/MilitaryVehicle_SNR0_MMSE_TEST_DR2_FPAS0_SX404.wav">wav</a></div></td>
       <td><div align="center"><a href="Enh_demos/MilitaryVehicle_SNR0_ML_TEST_DR2_FPAS0_SX404.wav">wav</a></div></td>
     </tr>
