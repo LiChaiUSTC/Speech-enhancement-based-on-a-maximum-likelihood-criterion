@@ -152,3 +152,4 @@ Select one well-trained model and change the suffix 'wts' to 'mat'. Then execute
       <td width="210"><div align="center">(d) <a href="Enh_demos/SpeechBabble_SNR5_ML_TEST_DR7_FDHC0_SI2189.wav">ML</a></div></td>
     </tr>
   </table>
+<p>Fig. 9. The spectrograms of utterances corrupted by N3 (Destroyer Engine), N5 (Factory1), N10 (Machine Gun), and N13 (Speech Babble) at 5 dB. Each row corresponds to one example set with the clean speech, noisy speech, MMSE-DNN and ML-GGD-DNN (β=0.9) enhanced speech.</p>
