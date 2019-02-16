@@ -396,15 +396,15 @@ void BP_GPU::train_bunch_single(int n_frames, float *in, const float* targ)
 		float *realerror=dev.realerror;
 		float *errorabsolute=dev.errorabsolute;
 		float *errorabsolute2=dev.errorabsolute2;
-        float *newobj=dev.newobj;
+                float *newobj=dev.newobj;
 		if (cur_layer != numlayers - 1)
 		{
 			DevDsigmoid(streams, cur_layer_size, cur_layer_y, cur_layer_dedy, cur_layer_dedx);
 		}
 		else
 		{
-			//"shapefactor" refers to the shape factor ¦Â in GGD. "scalefactor" refers to the scale factor ¦Á in GGD. 
-			//When MLflag!=1, the classic ¦Â-norm function is selected as the objective function, where ¦Â=1 corresponds to the LAD criterion, ¦Â=2 corresponds to the MMSE criterion.
+			//"shapefactor" refers to the shape factor Î² in GGD. "scalefactor" refers to the scale factor Î± in GGD. 
+			//When MLflag!=1, the classic Î²-norm function is selected as the objective function, where Î²=1 corresponds to the LAD criterion, Î²=2 corresponds to the MMSE criterion.
 			DevSubClean2(streams, n_frames, cur_layer_units,shapefactor, dev.out, targ, cur_layer_dedx);
 			DevVecMulNum(streams, cur_layer_units * n_frames, cur_layer_dedx, 1.0f/n_frames, cur_layer_dedx);
 			// When MLflag==1, the proposed log-likelihood function based on the GGD error model is selected as the objective function.
