@@ -17,7 +17,7 @@ Note: Set the sampling frequency, frame length and frame shift in the source cod
 
 ### Step1.2: Packaged into a Pfile file
 #### cd tools_pfile
-1.Calculate the number of frames with command below:
+1.Calculate the number of frames per sentence with command below:
 
 `perl GetLenForFeaScp.pl train_noisy.scp frame_numbers.len 257 1`
 
