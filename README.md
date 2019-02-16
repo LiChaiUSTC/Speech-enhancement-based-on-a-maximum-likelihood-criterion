@@ -117,7 +117,7 @@ Select one well-trained model and change the suffix 'wts' to 'mat'. Then execute
 ## Demos:
 #### cd Enh_demos
 <p><img src="https://i.imgur.com/h6UB0qY.png" width="210" /> <img src="https://i.imgur.com/utBjeXl.png" width="210"/> <img src="https://i.imgur.com/lNuwlIQ.png" width="210" /> <img src="https://i.imgur.com/W23l6sf.png" width="210" /></p>
-  <table width="1000" height="30" border="1">
+  <table width="1000" height="33" border="1">
     <tr>
       <td width="210"><div align="center">(a) <a href="Enh_demos/DestroyerOperations_SNR5_CLEAN_TEST_DR7_FDHC0_SI929.WAV">Clean </a></div></td>
       <td width="210"><div align="center">(b) <a href="Enh_demos/DestroyerOperations_SNR5_NOISY_TEST_DR7_FDHC0_SI929.wav">Noisy</a></div></td>
